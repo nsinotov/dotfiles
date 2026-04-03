@@ -54,8 +54,18 @@ NC='\033[0m'
 # Helpers
 # ------------------------------------
 
+# Check if CLI openvpn (ours) is running — match only the brew binary, not OpenVPN Connect
 is_running() {
-  pgrep -x openvpn > /dev/null 2>&1
+  [ -f "$PID_FILE" ] && sudo kill -0 "$(cat "$PID_FILE" 2>/dev/null)" 2>/dev/null
+}
+
+# Kill only CLI openvpn by PID file — never touch OpenVPN Connect (ovpnagent/ovpnhelper)
+kill_cli_openvpn() {
+  if [ -f "$PID_FILE" ]; then
+    sudo kill "$(cat "$PID_FILE" 2>/dev/null)" 2>/dev/null || true
+    sleep 1
+  fi
+  rm -f "$PID_FILE"
 }
 
 start_openvpn() {
@@ -65,9 +75,38 @@ start_openvpn() {
     --log "$LOG" \
     --writepid "$PID_FILE" \
     --ping 10 \
-    --ping-restart 60 \
-    --persist-tun
+    --ping-restart 60
   sudo chmod a+r "$LOG" "$PID_FILE" 2>/dev/null
+}
+
+# Kill CLI openvpn and clean up VPN network state
+cleanup_vpn_state() {
+  kill_cli_openvpn
+
+  # Remove VPN override routes (/1 routes that OpenVPN uses to hijack traffic)
+  sudo route -n delete -net 0.0.0.0/1 > /dev/null 2>&1 || true
+  sudo route -n delete -net 128.0.0.0/1 > /dev/null 2>&1 || true
+
+  # Remove scoped default routes through tun/utun interfaces (don't destroy the interfaces —
+  # OpenVPN Connect and macOS system services use utun interfaces too)
+  for iface in $(ifconfig -l 2>/dev/null | tr ' ' '\n' | grep -E '^(tun|utun)'); do
+    sudo route -n delete -ifscope "$iface" default > /dev/null 2>&1 || true
+  done
+
+  # Reset DNS to network-provided settings
+  if [ "$(uname -s)" = "Darwin" ]; then
+    # Remove any DNS overrides CLI openvpn pushed via scutil
+    sudo scutil <<-EOF > /dev/null 2>&1 || true
+d.init
+d.add ServerAddresses * 0.0.0.0
+set State:/Network/Service/openvpn/DNS
+remove State:/Network/Service/openvpn/DNS
+EOF
+    sudo dscacheutil -flushcache
+    sudo killall -HUP mDNSResponder 2>/dev/null || true
+  else
+    sudo systemd-resolve --flush-caches 2>/dev/null || true
+  fi
 }
 
 # ------------------------------------
@@ -77,7 +116,7 @@ start_openvpn() {
 vpn_status() {
   if is_running; then
     local pid uptime remote
-    pid=$(pgrep -x openvpn)
+    pid=$(cat "$PID_FILE" 2>/dev/null)
     uptime=$(ps -o etime= -p "$pid" 2>/dev/null | xargs)
     remote=$(grep -m1 "TCP/UDP: Connecting\|Peer Connection Initiated" "$LOG" 2>/dev/null \
       | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+' || true)
@@ -117,15 +156,14 @@ vpn_down() {
   fi
 
   echo "Stopping VPN..."
-  sudo killall openvpn
-  sleep 1
+  cleanup_vpn_state
+  echo -e "  Routes and DNS cleaned up"
   echo -e "${RED}VPN stopped${NC}"
 }
 
 vpn_reconnect() {
   echo "Reconnecting VPN..."
-  sudo killall openvpn 2>/dev/null || true
-  sleep 2
+  kill_cli_openvpn
   start_openvpn
   sleep 3
   vpn_status
@@ -133,51 +171,98 @@ vpn_reconnect() {
 
 vpn_fix() {
   echo "Fixing network..."
-  sudo killall openvpn 2>/dev/null || true
-  sleep 1
 
-  # Restore default route
-  local gateway
+  # Step 1: Kill all openvpn processes and clean VPN state
+  cleanup_vpn_state
+  echo "  VPN processes killed, routes and DNS cleaned"
+
+  # Step 2: Detect the Wi-Fi interface
+  local wifi_iface="en0"
   if [ "$(uname -s)" = "Darwin" ]; then
-    gateway=$(netstat -rn | awk '/^default.*en0/{print $2; exit}')
+    # Find the actual Wi-Fi interface (not always en0)
+    local detected
+    detected=$(networksetup -listallhardwareports 2>/dev/null \
+      | awk '/Wi-Fi/{getline; print $2}')
+    [ -n "$detected" ] && wifi_iface="$detected"
+  fi
+
+  # Step 3: Restore default gateway
+  local gateway=""
+  if [ "$(uname -s)" = "Darwin" ]; then
+    # Try multiple detection methods
+    gateway=$(netstat -rn 2>/dev/null | awk "/^default.*${wifi_iface}/"'{print $2; exit}')
+    if [ -z "$gateway" ]; then
+      gateway=$(ipconfig getoption "$wifi_iface" router 2>/dev/null || true)
+    fi
+    if [ -z "$gateway" ]; then
+      gateway=$(networksetup -getinfo Wi-Fi 2>/dev/null \
+        | awk -F': ' '/^Router/{print $2}')
+    fi
   else
     gateway=$(ip route show default 2>/dev/null | awk '{print $3; exit}')
   fi
   gateway="${gateway:-192.168.1.1}"
 
-  sudo route -n delete -net 0.0.0.0 > /dev/null 2>&1 || true
-  # Clean up tun/utun interfaces
-  for iface in $(ifconfig -l 2>/dev/null | tr ' ' '\n' | grep -E '^(tun|utun)'); do
-    sudo route -n delete -ifscope "$iface" default > /dev/null 2>&1 || true
-  done
+  # Delete broken default route and re-add through Wi-Fi
+  sudo route -n delete default > /dev/null 2>&1 || true
   sudo route -n add default "$gateway" > /dev/null 2>&1 || true
-  echo "  Routes cleaned, default gateway restored ($gateway)"
+  echo "  Default gateway restored ($gateway via $wifi_iface)"
 
-  # Flush DNS cache
-  if [ "$(uname -s)" = "Darwin" ]; then
-    sudo dscacheutil -flushcache
-    sudo killall -HUP mDNSResponder 2>/dev/null || true
-  else
-    sudo systemd-resolve --flush-caches 2>/dev/null || true
-  fi
-  echo "  DNS cache flushed"
-
-  # Verify connectivity
+  # Step 4: Verify connectivity, bounce Wi-Fi if needed
   sleep 2
   if ping -c 1 -W 3 8.8.8.8 > /dev/null 2>&1; then
     echo -e "${GREEN}Internet connection restored${NC}"
   else
-    echo -e "${YELLOW}Restarting network interface...${NC}"
+    echo -e "${YELLOW}Cycling Wi-Fi...${NC}"
     if [ "$(uname -s)" = "Darwin" ]; then
-      sudo ifconfig en0 down && sleep 1 && sudo ifconfig en0 up
+      networksetup -setairportpower "$wifi_iface" off
+      sleep 2
+      networksetup -setairportpower "$wifi_iface" on
     else
-      sudo ip link set eth0 down && sleep 1 && sudo ip link set eth0 up
+      sudo ip link set "$wifi_iface" down && sleep 1 && sudo ip link set "$wifi_iface" up
     fi
-    sleep 3
+    sleep 5
+    # Re-detect gateway after Wi-Fi restart (DHCP may assign a new one)
+    if [ "$(uname -s)" = "Darwin" ]; then
+      local new_gw
+      new_gw=$(ipconfig getoption "$wifi_iface" router 2>/dev/null || true)
+      if [ -n "$new_gw" ]; then
+        sudo route -n delete default > /dev/null 2>&1 || true
+        sudo route -n add default "$new_gw" > /dev/null 2>&1 || true
+      fi
+    fi
     if ping -c 1 -W 3 8.8.8.8 > /dev/null 2>&1; then
       echo -e "${GREEN}Internet connection restored${NC}"
     else
-      echo -e "${RED}Still no internet. Try toggling Wi-Fi off/on manually.${NC}"
+      echo -e "${RED}Still no internet. Try: networksetup -setairportpower $wifi_iface off && sleep 5 && networksetup -setairportpower $wifi_iface on${NC}"
+    fi
+  fi
+
+  # Step 5: Restore OpenVPN Connect daemons if installed but not running
+  if [ "$(uname -s)" = "Darwin" ]; then
+    for plist in org.openvpn.helper org.openvpn.client; do
+      if [ -f "/Library/LaunchDaemons/${plist}.plist" ]; then
+        if ! sudo launchctl list "$plist" > /dev/null 2>&1; then
+          sudo launchctl load -w "/Library/LaunchDaemons/${plist}.plist" 2>/dev/null || true
+          echo "  Reloaded $plist"
+        fi
+      fi
+    done
+  fi
+
+  # Step 6: Verify DNS resolution
+  if host -W 3 google.com > /dev/null 2>&1; then
+    echo -e "  DNS: ${GREEN}working${NC}"
+  else
+    echo -e "  DNS: ${YELLOW}not resolving — resetting DNS to DHCP${NC}"
+    if [ "$(uname -s)" = "Darwin" ]; then
+      networksetup -setdnsservers Wi-Fi Empty
+    fi
+    sleep 1
+    if host -W 3 google.com > /dev/null 2>&1; then
+      echo -e "  DNS: ${GREEN}fixed${NC}"
+    else
+      echo -e "  DNS: ${RED}still failing${NC}"
     fi
   fi
 }
