@@ -4,17 +4,17 @@ Developer environment configuration files for macOS/Linux.
 
 ## What's Inside
 
-| Directory | Tool | Description |
-|-----------|------|-------------|
-| `shell/` | Zsh + Oh My Zsh | Shell config, topic-based aliases, key bindings |
-| `shell/aliases/` | — | Static aliases grouped by topic (git, media, navigation) |
-| `shell/templates/` | — | Documentation for generated project and account aliases |
-| `terminal/` | Ghostty | Terminal emulator (Catppuccin Mocha, Monaspice font) |
-| `editor/` | Neovim (LazyVim) | Editor with Catppuccin theme, LSP support |
-| `git/` | Git | Config template, global gitignore, modern defaults |
-| `tmux/` | Tmux | Multiplexer with TPM, vim-tmux-navigator, session persistence |
-| `prompt/` | Starship | Cross-shell prompt (clean, icons only) |
-| `tools/` | AeroSpace, VPN | Tiling window manager (macOS), OpenVPN connection manager |
+| Directory          | Tool             | Description                                                   |
+| ------------------ | ---------------- | ------------------------------------------------------------- |
+| `shell/`           | Zsh + Oh My Zsh  | Shell config, topic-based aliases, key bindings               |
+| `shell/aliases/`   | —                | Static aliases grouped by topic (git, media, navigation)      |
+| `shell/templates/` | —                | Documentation for generated project and account aliases       |
+| `terminal/`        | Ghostty          | Terminal emulator (Catppuccin Mocha, Monaspice font)          |
+| `editor/`          | Neovim (LazyVim) | Editor with Catppuccin theme, LSP support                     |
+| `git/`             | Git              | Config template, global gitignore, modern defaults            |
+| `tmux/`            | Tmux             | Multiplexer with TPM, vim-tmux-navigator, session persistence |
+| `prompt/`          | Starship         | Cross-shell prompt (clean, icons only)                        |
+| `tools/`           | AeroSpace, VPN   | Tiling window manager (macOS), OpenVPN connection manager     |
 
 ## Architecture
 
@@ -22,9 +22,9 @@ Developer environment configuration files for macOS/Linux.
 ┌─────────────────────────────────────────────────────┐
 │  ~/.config/dotfiles/.secrets (secrets, project definitions, identity)    │  ← never committed
 ├─────────────────────────────────────────────────────┤
-│  install.sh reads .secrets and:                         │
+│  install.sh reads .secrets and:                     │
 │    1. Symlinks static configs to system paths       │
-│    2. Generates .gitconfig with identity             │
+│    2. Generates .gitconfig with identity            │
 │    3. Generates project aliases → ~/.aliases.d/     │
 │    4. Generates Claude account functions            │
 │    5. Links custom scripts to ~/bin/                │

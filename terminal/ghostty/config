@@ -9,16 +9,8 @@
 font-family = Monaspice Ne Nerd Font Mono
 font-size = 14
 
-# Monaspace stylistic sets — enable programming ligatures and alternates
+# Standard contextual alternates only (no fancy ligatures)
 font-feature = calt
-font-feature = ss01
-font-feature = ss02
-font-feature = ss03
-font-feature = ss04
-font-feature = ss05
-font-feature = ss06
-font-feature = ss07
-font-feature = ss08
 
 # ------------------------------------
 # Theme
