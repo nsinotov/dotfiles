@@ -340,23 +340,59 @@ PROJEOF
   [ -n "$reinstall" ] && echo "alias ${name}-reinstall='${reinstall}'" >> "$outfile"
 
   if [ -n "$wt_repo" ]; then
+
+    # Log helpers for bordered output
+    cat >> "$outfile" <<'WTHELPEOF'
+
+_wt_log_green() {
+  local width=50
+  local border="\033[1;32m"
+  local reset="\033[0m"
+  printf "\n${border}%s${reset}\n" "$(printf '─%.0s' $(seq 1 $width))"
+  for line in "$@"; do
+    printf "${border}│${reset} %-$((width - 2))s\n" "$line"
+  done
+  printf "${border}%s${reset}\n" "$(printf '─%.0s' $(seq 1 $width))"
+}
+
+_wt_log_red() {
+  local width=50
+  local border="\033[1;31m"
+  local reset="\033[0m"
+  printf "\n${border}%s${reset}\n" "$(printf '─%.0s' $(seq 1 $width))"
+  for line in "$@"; do
+    printf "${border}│${reset} %-$((width - 2))s\n" "$line"
+  done
+  printf "${border}%s${reset}\n" "$(printf '─%.0s' $(seq 1 $width))"
+}
+WTHELPEOF
+
     cat >> "$outfile" <<WTEOF
 
 ${name}-wt-new() {
   local branch="\$1"
   local base_branch="\${2:-${wt_branch}}"
   if [ -z "\$branch" ]; then
-    echo "Usage: ${name}-wt-new <branch-name> [base-branch]"
+    _wt_log_red "Usage: ${name}-wt-new <branch> [base-branch]"
     return 1
   fi
   local project_dir="${wt_repo}"
   local sanitized="\${branch//\//-}"
+  local wt_name="${name}-\$sanitized"
   local wt_path="\$(dirname "\$project_dir")/${name}-\$sanitized"
+  local actual_base="\$base_branch"
   git -C "\$project_dir" fetch origin
   if git -C "\$project_dir" rev-parse --verify "origin/\$branch" >/dev/null 2>&1; then
-    git -C "\$project_dir" worktree add "\$wt_path" -b "\$branch" "origin/\$branch"
+    actual_base="\$branch (remote)"
+    if ! git -C "\$project_dir" worktree add "\$wt_path" -b "\$branch" "origin/\$branch"; then
+      _wt_log_red "Failed to create worktree" "branch: \$branch"
+      return 1
+    fi
   else
-    git -C "\$project_dir" worktree add "\$wt_path" -b "\$branch" "origin/\$base_branch"
+    if ! git -C "\$project_dir" worktree add "\$wt_path" -b "\$branch" "origin/\$base_branch"; then
+      _wt_log_red "Failed to create worktree" "branch: \$branch" "base: \$base_branch"
+      return 1
+    fi
   fi
 WTEOF
 
@@ -408,16 +444,23 @@ TMUXEOF
       cat >> "$outfile" <<TMUXEOF
   tmux select-window -t "\$session_name:1"
   tmux select-pane -t "\$session_name:1.1"
-  echo "Tmux session created: \$session_name"
 TMUXEOF
     fi
 
-    cat >> "$outfile" <<WTEOF2
-  cd "\$wt_path"
-  echo "Worktree ready: \$wt_path"
+    # Summary log (with or without tmux)
+    if [ -n "$wt_tmux" ]; then
+      cat >> "$outfile" <<WTEOF2
+  _wt_log_green "Worktree created" "worktree: \$wt_name" "directory: \$wt_name" "branch: \$branch" "base: \$actual_base" "tmux: \$session_name"
 }
 
 WTEOF2
+    else
+      cat >> "$outfile" <<WTEOF2
+  _wt_log_green "Worktree created" "worktree: \$wt_name" "directory: \$wt_name" "branch: \$branch" "base: \$actual_base"
+}
+
+WTEOF2
+    fi
 
     # wt-done function
     cat >> "$outfile" <<WTDONE_HDR
@@ -425,72 +468,63 @@ WTEOF2
 ${name}-wt-done() {
   local branch="\$1"
   if [ -z "\$branch" ]; then
-    echo "Usage: ${name}-wt-done <branch-name>"
+    _wt_log_red "Usage: ${name}-wt-done <branch>"
     return 1
   fi
   local project_dir="${wt_repo}"
   local sanitized="\${branch//\//-}"
   local wt_path="\$(dirname "\$project_dir")/${name}-\$sanitized"
+  local wt_name="${name}-\$sanitized"
   local removed=()
 WTDONE_HDR
 
-    cat >> "$outfile" <<WTDONE_CLEANUP
+    cat >> "$outfile" <<WTDONE_GUARD
   cd "\$project_dir"
-  local wt_name="${name}-\$sanitized"
   # Guard: never remove the main project directory or primary worktree
   local main_wt
   main_wt="\$(git -C "\$project_dir" worktree list --porcelain 2>/dev/null | head -1)"
   main_wt="\${main_wt#worktree }"
   if [ "\$wt_path" = "\$project_dir" ] || [ "\$wt_path" = "\$main_wt" ]; then
-    echo "Error: refusing to remove the main project directory"
+    _wt_log_red "Refusing to remove main project directory"
     return 1
   fi
-  if git worktree remove "\$wt_path" 2>/dev/null; then
-    removed+=("worktree \$wt_name")
-    removed+=("directory \$wt_name")
-  elif [ -d "\$wt_path" ]; then
-    rm -rf "\$wt_path"
-    removed+=("directory \$wt_name")
-  fi
-  if git branch -d "\$branch" 2>/dev/null; then
-    removed+=("branch \$branch")
-  fi
-WTDONE_CLEANUP
+WTDONE_GUARD
 
+    # Kill tmux session BEFORE removing worktree (processes block directory removal)
     if [ -n "$wt_tmux" ]; then
       cat >> "$outfile" <<WTDONE_TMUX
   local session_name="${name}-\$sanitized"
+  if [ -n "\$TMUX" ] && [ "\$(tmux display-message -p '#S')" = "\$session_name" ]; then
+    _wt_log_red "Cannot remove from inside its own tmux session" "Run from another session or terminal"
+    return 1
+  fi
   if tmux has-session -t "\$session_name" 2>/dev/null; then
-    removed+=("tmux session \$session_name")
+    tmux kill-session -t "\$session_name"
+    removed+=("tmux: \$session_name")
   fi
 WTDONE_TMUX
     fi
 
-    cat >> "$outfile" <<WTDONE_REPORT
-  if [ \${#removed[@]} -eq 0 ]; then
-    echo "Nothing to clean up for \$branch"
+    cat >> "$outfile" <<WTDONE_REMOVE
+  if git worktree remove --force "\$wt_path" 2>/dev/null; then
+    removed+=("worktree: \$wt_name")
+    removed+=("directory: \$wt_name")
+  elif [ -d "\$wt_path" ]; then
+    rm -rf "\$wt_path"
+    removed+=("directory: \$wt_name")
+  fi
+  if git branch -d "\$branch" 2>/dev/null; then
+    removed+=("branch: \$branch")
+  fi
+WTDONE_REMOVE
+
+    cat >> "$outfile" <<'WTDONE_REPORT'
+  if [ ${#removed[@]} -eq 0 ]; then
+    _wt_log_red "Nothing to clean up"
   else
-    echo "Removed:"
-    for item in "\${removed[@]}"; do
-      echo "  \$item"
-    done
+    _wt_log_green "Removed" "${removed[@]}"
   fi
 WTDONE_REPORT
-
-    if [ -n "$wt_tmux" ]; then
-      cat >> "$outfile" <<WTDONE_KILL
-  if tmux has-session -t "\$session_name" 2>/dev/null; then
-    if [ -n "\$TMUX" ] && [ "\$(tmux display-message -p '#S')" = "\$session_name" ]; then
-      local other_session
-      other_session=\$(tmux list-sessions -F '#S' | grep -v "^\${session_name}\\\$" | head -1)
-      if [ -n "\$other_session" ]; then
-        tmux switch-client -t "\$other_session"
-      fi
-    fi
-    tmux kill-session -t "\$session_name"
-  fi
-WTDONE_KILL
-    fi
 
     cat >> "$outfile" <<WTDONE_END
 }

@@ -47,9 +47,9 @@
 #
 #   <name>-wt-new <branch>    Create worktree (uses remote branch if exists, otherwise
 #                             creates from base branch), copy env files, install deps,
-#                             create tmux session (if configured), cd into it
+#                             create tmux session (if configured). Stays in current dir.
 #   <name>-wt-done <branch>   Kill tmux session (if any), clean up worktree directory
-#                             and local branch, report what was removed
+#                             and local branch. Refuses to remove main project dir.
 #   <name>-wt-ls              List all worktrees for the project
 #
 # Example ~/.config/dotfiles/.secrets entry:

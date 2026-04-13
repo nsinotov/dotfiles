@@ -89,7 +89,7 @@ Generated functions:
 
 | Function | Description |
 | --- | --- |
-| `myapp-wt-new <branch>` | Create worktree, copy env files, install deps, open tmux session (if configured) |
+| `myapp-wt-new <branch>` | Create worktree, copy env files, install deps, start tmux session (if configured). Stays in current directory. |
 | `myapp-wt-done <branch>` | Remove worktree + directory, delete local branch, kill tmux session |
 | `myapp-wt-ls` | List all worktrees for the project |
 
