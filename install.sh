@@ -342,16 +342,17 @@ PROJEOF
     cat >> "$outfile" <<WTEOF
 
 ${name}-wt-new() {
-  local task="\$1"
+  local branch="\$1"
   local base_branch="\${2:-${wt_branch}}"
-  if [ -z "\$task" ]; then
-    echo "Usage: ${name}-wt-new <task-id> [base-branch]"
+  if [ -z "\$branch" ]; then
+    echo "Usage: ${name}-wt-new <branch-name> [base-branch]"
     return 1
   fi
   local project_dir="${wt_repo}"
-  local wt_path="\$(dirname "\$project_dir")/\$(basename "\$project_dir")-\$task"
+  local sanitized="\${branch//\//-}"
+  local wt_path="\$(dirname "\$project_dir")/${name}-\$sanitized"
   git -C "\$project_dir" fetch origin
-  git -C "\$project_dir" worktree add "\$wt_path" -b "feature/\$task" "origin/\$base_branch"
+  git -C "\$project_dir" worktree add "\$wt_path" -b "\$branch" "origin/\$base_branch"
 WTEOF
 
     if [ -n "$wt_env" ]; then
@@ -377,17 +378,18 @@ INSTEOF
 }
 
 ${name}-wt-done() {
-  local task="\$1"
-  if [ -z "\$task" ]; then
-    echo "Usage: ${name}-wt-done <task-id>"
+  local branch="\$1"
+  if [ -z "\$branch" ]; then
+    echo "Usage: ${name}-wt-done <branch-name>"
     return 1
   fi
   local project_dir="${wt_repo}"
-  local wt_path="\$(dirname "\$project_dir")/\$(basename "\$project_dir")-\$task"
+  local sanitized="\${branch//\//-}"
+  local wt_path="\$(dirname "\$project_dir")/${name}-\$sanitized"
   cd "\$project_dir"
   git worktree remove "\$wt_path"
-  git branch -d "feature/\$task"
-  echo "Worktree removed: \$task"
+  git branch -d "\$branch"
+  echo "Worktree removed: \$branch"
 }
 
 ${name}-wt-ls() {

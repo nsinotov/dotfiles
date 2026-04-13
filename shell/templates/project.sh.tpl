@@ -31,14 +31,15 @@
 #   PROJECT_<N>_WT_ENV_FILES  Space-separated list of env files to copy from main repo
 #   PROJECT_<N>_WT_INSTALL    Command to install dependencies in new worktree
 #
-# Worktrees are placed as siblings to the repo: <repo>-<task-id>
-# e.g. ~/projects/myapp-DEV-1234
+# Worktrees are placed as siblings to the repo: <name>-<sanitized-branch>
+# Branch slashes are replaced with dashes in the directory name.
+# e.g. ~/projects/myapp-hotfix-DEV-1234 (branch: hotfix/DEV-1234)
 #
 # When WT_REPO is set, three functions are generated:
 #
-#   <name>-wt-new <task-id>    Create worktree, copy env files, install deps, cd into it
-#   <name>-wt-done <task-id>   Remove worktree and delete the local branch
-#   <name>-wt-ls               List all worktrees for the project
+#   <name>-wt-new <branch>    Create worktree, copy env files, install deps, cd into it
+#   <name>-wt-done <branch>   Remove worktree and delete the local branch
+#   <name>-wt-ls              List all worktrees for the project
 #
 # Example ~/.config/dotfiles/.secrets entry:
 #
