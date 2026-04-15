@@ -58,6 +58,9 @@ fi
 command -v yarn > /dev/null 2>&1 && export PATH="$PATH:$(yarn global bin)"
 command -v npm  > /dev/null 2>&1 && export PATH="$PATH:$(npm bin -g 2>/dev/null)"
 
+# zoxide — smarter cd (powers sesh's directory source)
+command -v zoxide > /dev/null 2>&1 && eval "$(zoxide init zsh)"
+
 # Conda (Anaconda/Miniconda)
 if [ -f "/opt/anaconda3/etc/profile.d/conda.sh" ]; then
   . "/opt/anaconda3/etc/profile.d/conda.sh"

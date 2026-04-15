@@ -124,7 +124,7 @@ echo ""
 REQUIRED_DEPS=(git zsh)
 
 # Optional tools (offer to install if missing)
-OPTIONAL_DEPS=(nvim tmux starship fzf fd lazygit gh)
+OPTIONAL_DEPS=(nvim tmux starship fzf fd lazygit gh sesh zoxide)
 
 # macOS-only optional tools (cask)
 MACOS_CASK_DEPS=(ghostty)
