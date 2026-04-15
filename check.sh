@@ -80,6 +80,12 @@ else
   warn "MISSING: ~/.aliases.d/ (run install.sh)"
 fi
 
+if [ -f "$HOME/.aliases.d/dotfiles.sh" ]; then
+  success "OK: ~/.aliases.d/dotfiles.sh (dotfiles listing command)"
+else
+  warn "MISSING: ~/.aliases.d/dotfiles.sh (run install.sh)"
+fi
+
 # ------------------------------------
 # Check repo for uncommitted changes
 # ------------------------------------

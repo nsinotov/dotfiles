@@ -11,6 +11,27 @@
 
 set -euo pipefail
 
+# Fast-path --help so it works even without VPN_CONFIG_PATH / openvpn installed
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] || [ "${1:-}" = "help" ]; then
+  cat <<'HELP'
+Usage: vpn {up|down|reconnect|status|log|fix|menu} [-h|--help]
+
+OpenVPN connection manager.
+
+Commands:
+  up, start          Start VPN connection
+  down, stop         Stop VPN connection
+  reconnect, restart Restart VPN connection
+  status             Show connection status (default)
+  log                Tail the VPN log
+  fix                Fix network after unclean VPN shutdown
+  menu, tui          Interactive fzf picker
+
+Config: VPN_CONFIG_PATH, VPN_OPENVPN_BIN (see ~/.config/dotfiles/.secrets)
+HELP
+  exit 0
+fi
+
 # ------------------------------------
 # Configuration (from environment)
 # ------------------------------------
@@ -319,15 +340,8 @@ case "${1:-status}" in
   fix)            vpn_fix ;;
   menu|tui)       vpn_menu ;;
   *)
-    echo "Usage: vpn {up|down|reconnect|status|log|fix|menu}"
-    echo ""
-    echo "Commands:"
-    echo "  up, start       Start VPN connection"
-    echo "  down, stop      Stop VPN connection"
-    echo "  reconnect       Restart VPN connection"
-    echo "  status          Show connection status (default)"
-    echo "  log             Tail the VPN log"
-    echo "  fix             Fix network after unclean VPN shutdown"
-    echo "  menu, tui       Interactive fzf picker"
+    echo "Usage: vpn {up|down|reconnect|status|log|fix|menu}" >&2
+    echo "Run 'vpn --help' for details." >&2
+    exit 1
     ;;
 esac

@@ -2,14 +2,14 @@
 # Git Aliases
 # ===========================================
 
-# Delete all local branches except protected ones (master, main, develop)
+# desc: Delete all local branches except master/main/develop
 alias branches-delete='git branch | grep -v "master" | grep -v "main" | grep -v "develop" | xargs git branch -D'
 
-# Show compact log with graph
+# desc: Show compact git log with graph (last 20)
 alias gl='git log --oneline --graph --decorate -20'
 
-# Amend last commit without editing message
+# desc: Amend last commit without editing the message
 alias gamend='git commit --amend --no-edit'
 
-# Show short status
+# desc: Show short git status with branch
 alias gs='git status --short --branch'

@@ -15,7 +15,8 @@ _tmux_resurrect_save() {
 }
 
 # ----
-# Create (or attach to) a tmux session for a directory.
+# desc: Create or attach to a tmux session for a directory
+# help
 # Usage: tmux-session <directory> [windows-spec]
 #
 # Session name = basename of the directory.
@@ -25,6 +26,20 @@ _tmux_resurrect_save() {
 #   Space-separated entries "name:panes[:layout]"
 #   Default: "main:4:tiled claude:1 ide:1"
 tmux-session() {
+  if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    cat <<'HELP'
+Usage: tmux-session <directory> [windows-spec]
+
+Create or attach to a tmux session named after the directory.
+On name collision the parent folder is prepended.
+
+Windows-spec: space-separated entries "name:panes[:layout]"
+  Default: "main:4:tiled claude:1 ide:1"
+Env: TMUX_SESSION_WINDOWS overrides the default when no spec is given.
+HELP
+    return 0
+  fi
+
   local dir="${1:-}"
   local windows="${2:-${TMUX_SESSION_WINDOWS:-main:4:tiled claude:1 ide:1}}"
 
