@@ -267,6 +267,37 @@ vpn_fix() {
   fi
 }
 
+# fzf-based action picker — shows live status in the header
+vpn_menu() {
+  if ! command -v fzf > /dev/null 2>&1; then
+    echo "Error: fzf not found. Install with: brew install fzf"
+    exit 1
+  fi
+
+  local header action
+  if is_running; then
+    header="VPN: UP  •  config: $(basename "$CONFIG")"
+  else
+    header="VPN: DOWN  •  config: $(basename "$CONFIG")"
+  fi
+
+  action=$(printf '%s\n' \
+    "status     Show connection status" \
+    "up         Start VPN connection" \
+    "down       Stop VPN connection" \
+    "reconnect  Restart VPN connection" \
+    "log        Tail the VPN log" \
+    "fix        Fix network after unclean shutdown" \
+    | fzf --prompt="vpn> " \
+          --header="$header" \
+          --height=40% --reverse --no-sort \
+          --preview="$0 status" --preview-window=down:5:wrap \
+    | awk '{print $1}')
+
+  [ -z "$action" ] && return 0
+  exec "$0" "$action"
+}
+
 vpn_log() {
   if [ ! -f "$LOG" ]; then
     echo "No log file found. Start VPN first."
@@ -286,8 +317,9 @@ case "${1:-status}" in
   status)         vpn_status ;;
   log)            vpn_log ;;
   fix)            vpn_fix ;;
+  menu|tui)       vpn_menu ;;
   *)
-    echo "Usage: vpn {up|down|reconnect|status|log|fix}"
+    echo "Usage: vpn {up|down|reconnect|status|log|fix|menu}"
     echo ""
     echo "Commands:"
     echo "  up, start       Start VPN connection"
@@ -296,5 +328,6 @@ case "${1:-status}" in
     echo "  status          Show connection status (default)"
     echo "  log             Tail the VPN log"
     echo "  fix             Fix network after unclean VPN shutdown"
+    echo "  menu, tui       Interactive fzf picker"
     ;;
 esac

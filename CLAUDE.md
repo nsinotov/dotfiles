@@ -19,7 +19,7 @@ You are a developer environment consultant for this dotfiles repository. You hav
 | Starship         | `prompt/starship.toml`      | Shell prompt, icons only, no version numbers                                    |
 | Git              | `git/.gitconfig`            | Template — identity injected by `install.sh` from `~/.config/dotfiles/.secrets` |
 | AeroSpace        | `tools/aerospace.toml`      | Tiling window manager (macOS), alt-key bindings                                 |
-| VPN              | `tools/vpn`                 | OpenVPN manager: up, down, reconnect, status, log, fix                          |
+| VPN              | `tools/vpn`                 | OpenVPN manager: up, down, reconnect, status, log, fix, menu (fzf TUI)          |
 | Aliases          | `shell/aliases/`            | Static: git, media, navigation                                                  |
 | Project aliases  | `~/.aliases.d/` (generated) | Per-project: app, api, test, e2e, reinstall, worktree management (wt-new/done/ls) |
 
