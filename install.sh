@@ -513,7 +513,8 @@ WTDONE_TMUX
     rm -rf "\$wt_path"
     removed+=("directory: \$wt_name")
   fi
-  if git branch -d "\$branch" 2>/dev/null; then
+  # Force-delete: wt-done is explicit cleanup, so unmerged branches should still be removed
+  if git branch -D "\$branch" 2>/dev/null; then
     removed+=("branch: \$branch")
   fi
 WTDONE_REMOVE
