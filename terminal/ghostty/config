@@ -49,8 +49,8 @@ copy-on-select = true
 shell-integration = zsh
 shell-integration-features = no-cursor
 
-# Skip "are you sure?" on close
-confirm-close-surface = false
+# Ask "are you sure?" before closing a surface
+confirm-close-surface = true
 
 # New windows/tabs inherit the working directory
 window-inherit-working-directory = true
