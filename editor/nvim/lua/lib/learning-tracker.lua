@@ -21,6 +21,8 @@ local dirty = false
 local key_buf = {}
 local key_timer = nil
 local last_mode = "n"
+local last_mode_change_ns = 0
+local mode_debounce_ns = 50e6 -- 50ms
 
 -- ---- Helpers ----
 
@@ -127,8 +129,10 @@ vim.api.nvim_create_autocmd("ModeChanged", {
   callback = function()
     local from, to = vim.v.event.old_mode, vim.v.event.new_mode
     flush_keys()
-    -- Skip operator-pending noise
     if to:match("^no") then return end
+    local now_ns = vim.uv.hrtime()
+    if (now_ns - last_mode_change_ns) < mode_debounce_ns then return end
+    last_mode_change_ns = now_ns
     bump("mode:" .. from .. "->" .. to)
     last_mode = to
     append_session({ type = "mode", from = from, to = to })
