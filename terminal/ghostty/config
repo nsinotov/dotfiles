@@ -62,6 +62,14 @@ confirm-close-surface = true
 window-inherit-working-directory = true
 
 # ------------------------------------
+# macOS Option Key
+# ------------------------------------
+
+# Left Option sends Alt/Meta (for Neovim <a-…> bindings); right Option
+# still types special characters (°, ∫, etc.)
+macos-option-as-alt = left
+
+# ------------------------------------
 # Keybindings
 # ------------------------------------
 
