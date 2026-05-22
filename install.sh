@@ -350,18 +350,50 @@ _free_port() {
   while lsof -ti :"$port" -sTCP:LISTEN &>/dev/null && (( i++ < 10 )); do sleep 0.2; done
 }
 
+# Recursively collect all descendant PIDs of a given PID
+_descendants() {
+  local parent=$1 children
+  children=$(pgrep -P "$parent" 2>/dev/null) || return 0
+  for child in $children; do
+    echo "$child"
+    _descendants "$child"
+  done
+}
+
 # Usage: _run_on_port PORT [PORT...] -- COMMAND [ARGS...]
 _run_on_port() {
   local ports=()
   while [[ $# -gt 0 && "$1" != "--" ]]; do ports+=("$1"); shift; done
   [[ "${1:-}" = "--" ]] && shift
   for p in "${ports[@]}"; do _free_port "$p"; done
-  "$@"
+
+  # Run in background so we can trap signals and clean up the full process tree.
+  # Tools like nx spawn children in separate process groups, which escape a
+  # simple Ctrl-C — this ensures they are killed on exit.
+  "$@" &
+  local cmd_pid=$!
+
+  trap '_cleanup_tree '"$cmd_pid" INT TERM EXIT
+  wait $cmd_pid 2>/dev/null
   local rc=$?
+  trap - INT TERM EXIT
+
   if (( rc == 143 || rc == 137 )); then
     printf "\n\033[1;33m⚠ Server stopped — port reclaimed by another instance.\033[0m\n"
   fi
   return $rc
+}
+
+_cleanup_tree() {
+  local root=$1
+  local pids
+  pids=$(_descendants "$root")
+  kill "$root" $pids 2>/dev/null
+  sleep 0.5
+  # Force-kill any survivors
+  for pid in $root $pids; do
+    kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null
+  done
 }
 PORTEOF
 
@@ -402,6 +434,20 @@ PROJEOF
   elif [ -n "$api" ]; then
     echo "alias ${name}-api='${api}'" >> "$outfile"
   fi
+  # Generate stop command when at least one port is configured
+  if [ -n "$app_port" ] || [ -n "$api_port" ]; then
+    stop_ports=""
+    [ -n "$app_port" ] && stop_ports="$app_port"
+    [ -n "$api_port" ] && stop_ports="${stop_ports:+$stop_ports }$api_port"
+    cat >> "$outfile" <<STOPEOF
+# desc: Kill all app and API server processes
+${name}-stop() {
+  for p in ${stop_ports}; do _free_port "\$p"; done
+  printf "\033[1;32m✓ All servers stopped.\033[0m\n"
+}
+STOPEOF
+  fi
+
   [ -n "$test_cmd" ]  && echo "alias ${name}-test='${test_cmd}'"     >> "$outfile"
   [ -n "$e2e" ]       && echo "alias ${name}-e2e='${e2e}'"           >> "$outfile"
   [ -n "$reinstall" ] && echo "alias ${name}-reinstall='${reinstall}'" >> "$outfile"
@@ -810,6 +856,13 @@ DOTFILES_HDR
       _fmt_line "${name}-api" "0" "Kill port ${api_port} & run the API"
     elif [ -n "$api" ]; then
       _fmt_line "${name}-api" "0" "Run the project API"
+    fi
+    if [ -n "$app_port" ] || [ -n "$api_port" ]; then
+      stop_desc="Kill"
+      [ -n "$app_port" ] && [ -n "$api_port" ] && stop_desc="Kill ports ${app_port} & ${api_port}"
+      [ -n "$app_port" ] && [ -z "$api_port" ] && stop_desc="Kill port ${app_port}"
+      [ -z "$app_port" ] && [ -n "$api_port" ] && stop_desc="Kill port ${api_port}"
+      _fmt_line "${name}-stop" "0" "${stop_desc} — stop all servers"
     fi
     [ -n "$test_cmd" ]  && _fmt_line "${name}-test"      "0" "Run unit tests"
     [ -n "$e2e" ]       && _fmt_line "${name}-e2e"       "0" "Run e2e tests"

@@ -72,9 +72,12 @@ PROJECT_1_E2E="yarn e2e"
 PROJECT_1_REINSTALL="rm -rf node_modules && yarn"
 ```
 
-This generates aliases: `myapp-app`, `myapp-api`, `myapp-test`, `myapp-e2e`, `myapp-reinstall`.
+This generates aliases: `myapp-app`, `myapp-api`, `myapp-stop`, `myapp-test`, `myapp-e2e`, `myapp-reinstall`.
 
-When `APP_PORT` or `API_PORT` is set, running `myapp-app` / `myapp-api` will automatically kill any process already listening on that port before starting the server. This lets you switch between worktrees without manually finding and stopping the old instance — just run the command and it takes over.
+When `APP_PORT` or `API_PORT` is set:
+- Running `myapp-app` / `myapp-api` will automatically kill any process already listening on that port before starting the server. This lets you switch between worktrees without manually finding and stopping the old instance — just run the command and it takes over.
+- On Ctrl-C, the full process tree is cleaned up (including child processes that escape the terminal's process group, e.g. nx executor workers).
+- `myapp-stop` kills all app and API server processes on the configured ports.
 
 ### Worktree management
 

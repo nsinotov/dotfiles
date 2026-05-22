@@ -6,6 +6,7 @@
 #
 #   <name>-app         Run the application service
 #   <name>-api         Run the API service
+#   <name>-stop        Kill all app and API server processes (when ports are configured)
 #   <name>-test        Run the test suite
 #   <name>-e2e         Run end-to-end tests
 #   <name>-reinstall   Clean dependencies and reinstall
@@ -27,6 +28,9 @@
 #   When set, <name>-app / <name>-api will kill any process listening on those
 #   ports before starting the server. Kills the entire process tree (e.g.
 #   nx → remix → node) so the previous terminal returns to a prompt cleanly.
+#   On Ctrl-C, the full process tree is also cleaned up — child processes that
+#   escape the terminal's process group (e.g. nx executor workers) are killed.
+#   A <name>-stop command is also generated to kill all servers on demand.
 #   Shared helpers live in ~/.aliases.d/_port-helpers.sh.
 #
 # Optional (per-project git identity):
@@ -83,6 +87,7 @@
 #
 #   alias myapp-app='_run_on_port 3000 -- nx serve app'
 #   alias myapp-api='_run_on_port 8081 -- nx serve api'
+#   myapp-stop()  { ... }   # Kill all servers on ports 3000 & 8081
 #   alias myapp-test='yarn nx affected --target=test --maxParallel=2'
 #   alias myapp-e2e='yarn nx e2e app-e2e --watch'
 #   alias myapp-reinstall='find . -name node_modules -type d -prune -exec rm -rf {} + && yarn'
