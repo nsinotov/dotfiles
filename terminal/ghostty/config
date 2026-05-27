@@ -65,7 +65,7 @@ copy-on-select = true
 
 # Shell integration for zsh (prompt markers, cwd tracking)
 shell-integration = zsh
-shell-integration-features = no-cursor
+shell-integration-features = no-title
 
 # Ask "are you sure?" before closing a surface
 confirm-close-surface = true
