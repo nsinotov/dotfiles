@@ -86,7 +86,7 @@ kill_cli_openvpn() {
     sudo kill "$(cat "$PID_FILE" 2>/dev/null)" 2>/dev/null || true
     sleep 1
   fi
-  rm -f "$PID_FILE"
+  sudo rm -f "$PID_FILE"
 }
 
 start_openvpn() {
