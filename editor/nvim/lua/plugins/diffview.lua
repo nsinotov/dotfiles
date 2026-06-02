@@ -1,10 +1,10 @@
 return {
-  "sindrets/diffview.nvim",
+  "dlyongemallo/diffview-plus.nvim",
   config = function()
-    -- Temporary fix until https://github.com/sindrets/diffview.nvim/issues/618 is resolved.
-    -- PathLib:expand() strips $ from filenames that aren't env vars (e.g. Remix routes).
+    -- Fix vim.env[] crashing in async context (fast event). Use uv.os_getenv() instead.
     local PathLib = require("diffview.path").PathLib
     local uv = vim.uv or vim.loop
+    local original_expand = PathLib.expand
     function PathLib:expand(path)
       local segments = self:explode(path)
       local idx = 1
@@ -15,7 +15,10 @@ return {
       for i = idx, #segments do
         local env_var = segments[i]:match("^%$(%S+)$")
         if env_var then
-          segments[i] = uv.os_getenv(env_var) or segments[i]
+          local value = uv.os_getenv(env_var)
+          if value ~= nil then
+            segments[i] = value
+          end
         end
       end
       return self:join(unpack(segments))
