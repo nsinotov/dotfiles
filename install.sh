@@ -350,12 +350,33 @@ _free_port() {
   while lsof -ti :"$port" -sTCP:LISTEN &>/dev/null && (( i++ < 10 )); do sleep 0.2; done
 }
 
+# Kill orphaned processes (PPID=1) whose command line matches the given string.
+# Catches leaked wrappers (e.g. nx) that survive after their child listener dies.
+_kill_orphan_cmd() {
+  local pids
+  pids=$(pgrep -f "$*" 2>/dev/null) || return 0
+  local orphans=""
+  for pid in $pids; do
+    local ppid
+    ppid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+    [[ "$ppid" == "1" ]] && orphans="${orphans:+$orphans }$pid"
+  done
+  [[ -z "$orphans" ]] && return 0
+  printf "\033[1;33m⚠ Killing orphaned process(es): %s\033[0m\n" "$orphans"
+  kill $orphans 2>/dev/null
+  sleep 0.3
+  for pid in $orphans; do
+    kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null
+  done
+}
+
 # Usage: _run_on_port PORT [PORT...] -- COMMAND [ARGS...]
 _run_on_port() {
   local ports=()
   while [[ $# -gt 0 && "$1" != "--" ]]; do ports+=("$1"); shift; done
   [[ "${1:-}" = "--" ]] && shift
   for p in "${ports[@]}"; do _free_port "$p"; done
+  _kill_orphan_cmd "$@"
 
   "$@"
   local rc=$?
@@ -409,11 +430,16 @@ PROJEOF
     stop_ports=""
     [ -n "$app_port" ] && stop_ports="$app_port"
     [ -n "$api_port" ] && stop_ports="${stop_ports:+$stop_ports }$api_port"
+    orphan_lines=""
+    [ -n "$app" ] && orphan_lines="${orphan_lines}  _kill_orphan_cmd ${app}
+"
+    [ -n "$api" ] && orphan_lines="${orphan_lines}  _kill_orphan_cmd ${api}
+"
     cat >> "$outfile" <<STOPEOF
 # desc: Kill all app and API server processes
 ${name}-stop() {
   for p in ${stop_ports}; do _free_port "\$p"; done
-  printf "\033[1;32m✓ All servers stopped.\033[0m\n"
+${orphan_lines}  printf "\033[1;32m✓ All servers stopped.\033[0m\n"
 }
 STOPEOF
   fi
