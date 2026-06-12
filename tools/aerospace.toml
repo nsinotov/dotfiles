@@ -54,11 +54,11 @@ alt-8 = 'workspace 8'
 alt-9 = 'workspace 9'
 alt-0 = 'workspace 0'
 
-# ---- Focus windows (Alt + vim keys) ----
-alt-h = 'focus left'
-alt-j = 'focus down'
-alt-k = 'focus up'
-alt-l = 'focus right'
+# ---- Focus windows (Alt+Ctrl + vim keys) ----
+alt-ctrl-h = 'focus left'
+alt-ctrl-j = 'focus down'
+alt-ctrl-k = 'focus up'
+alt-ctrl-l = 'focus right'
 
 # ---- Move windows (Alt+Shift + vim keys) ----
 alt-shift-h = 'move left'
