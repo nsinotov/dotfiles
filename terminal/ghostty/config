@@ -55,7 +55,7 @@ window-decoration = false
 
 # Slight transparency with background blur
 background-opacity = 0.97
-background-blur-radius = 20
+background-blur = 20
 
 # ------------------------------------
 # Behavior
