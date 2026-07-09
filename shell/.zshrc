@@ -95,6 +95,19 @@ if [ -d "$HOME/.aliases.d" ]; then
 fi
 
 # ------------------------------------
+# Aliases — local extras (not tracked, never overwritten)
+# Drop any *.sh file into ~/.config/dotfiles/aliases.d/ to have it sourced.
+# ------------------------------------
+
+_LOCAL_ALIASES_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/aliases.d"
+if [ -d "$_LOCAL_ALIASES_DIR" ]; then
+  for f in "$_LOCAL_ALIASES_DIR/"*.sh; do
+    [ -f "$f" ] && source "$f"
+  done
+fi
+unset _LOCAL_ALIASES_DIR
+
+# ------------------------------------
 # Claude Code — personal account
 # ------------------------------------
 

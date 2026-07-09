@@ -306,6 +306,9 @@ echo ""
 ALIASES_DIR="$(target_path "$HOME/.aliases.d")"
 mkdir -p "$ALIASES_DIR"
 
+LOCAL_ALIASES_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/aliases.d"
+mkdir -p "$LOCAL_ALIASES_DIR"
+
 # Clean previous generated project files
 rm -f "$ALIASES_DIR"/project-*.sh
 rm -f "$ALIASES_DIR"/claude-accounts.sh
@@ -886,6 +889,44 @@ DOTFILES_HDR
 
   cat <<'DOTFILES_FTR'
 __DOTFILES_LIST__
+
+  # Runtime: scan local aliases from ~/.config/dotfiles/aliases.d/
+  _dotfiles_local_dir="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/aliases.d"
+  if [ -d "$_dotfiles_local_dir" ]; then
+    _dotfiles_first=true
+    for _dotfiles_f in "$_dotfiles_local_dir"/*.sh; do
+      [ -f "$_dotfiles_f" ] || continue
+      _dotfiles_lines="$(awk '
+        function emit(name) {
+          if (desc != "") { printf "%s|%d|%s\n", name, help, desc; desc=""; help=0 }
+        }
+        /^[[:space:]]*#[[:space:]]*desc:[[:space:]]*/ {
+          line=$0; sub(/^[[:space:]]*#[[:space:]]*desc:[[:space:]]*/, "", line); desc=line; next
+        }
+        /^[[:space:]]*#[[:space:]]*help[[:space:]]*$/ { help=1; next }
+        /^[[:space:]]*#/ { next }
+        /^[[:space:]]*$/ { next }
+        /^[[:space:]]*alias[[:space:]]+[A-Za-z0-9_-]+=/ {
+          n=$0; sub(/^[[:space:]]*alias[[:space:]]+/, "", n); sub(/=.*/, "", n); emit(n); next
+        }
+        /^[[:space:]]*[A-Za-z0-9_-]+\(\)/ {
+          n=$0; sub(/^[[:space:]]+/, "", n); sub(/\(.*/, "", n); emit(n); next
+        }
+        { desc=""; help=0 }
+      ' "$_dotfiles_f")"
+      [ -z "$_dotfiles_lines" ] && continue
+      if [ "$_dotfiles_first" = true ]; then
+        echo "Local aliases"
+        _dotfiles_first=false
+      fi
+      printf '%s\n' "$_dotfiles_lines" | while IFS='|' read -r _n _h _d; do
+        _marker=" "; [ "$_h" = "1" ] && _marker="*"
+        printf "  %-24s %s  %s\n" "$_n" "$_marker" "$_d"
+      done
+    done
+    [ "$_dotfiles_first" = false ] && echo ""
+  fi
+  return 0
 }
 DOTFILES_FTR
 } > "$dotfiles_outfile"

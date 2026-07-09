@@ -81,6 +81,14 @@ else
   warn "MISSING: ~/.aliases.d/ (run install.sh)"
 fi
 
+_local_aliases_dir="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/aliases.d"
+if [ -d "$_local_aliases_dir" ]; then
+  local_count=$(find "$_local_aliases_dir" -name "*.sh" | wc -l | tr -d ' ')
+  success "OK: ~/.config/dotfiles/aliases.d/ ($local_count local files)"
+else
+  warn "MISSING: ~/.config/dotfiles/aliases.d/ (run install.sh)"
+fi
+
 if [ -f "$HOME/.aliases.d/dotfiles.sh" ]; then
   success "OK: ~/.aliases.d/dotfiles.sh (dotfiles listing command)"
 else
