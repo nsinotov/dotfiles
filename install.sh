@@ -934,6 +934,36 @@ DOTFILES_FTR
 success "dotfiles command" "→ $dotfiles_outfile"
 
 # ===========================================
+# Phase 7: Keyboard layout — UA–RU (macOS only)
+# ===========================================
+# Copies the bundled UA–RU keyboard layout to ~/Library/Keyboard Layouts/ so
+# it appears in System Settings > Keyboard > Input Sources. A logout/login cycle
+# is required before the layout becomes selectable after the first install.
+# Layout source: keyboards/UA-RU-layout.bundle (created with Ukelele)
+
+if [ "$OS" = "Darwin" ]; then
+  echo ""
+  echo "Checking keyboard layout..."
+  echo ""
+
+  KBD_BUNDLE_SRC="$DOTFILES_DIR/keyboards/UA-RU-layout.bundle"
+  KBD_BUNDLE_DST="$HOME/Library/Keyboard Layouts/UA-RU-layout.bundle"
+
+  if [ "$TEST_MODE" = true ]; then
+    info "Keyboard layout (UA–RU)" "skipped in test mode (system install)"
+  elif [ -d "$KBD_BUNDLE_DST" ]; then
+    success "Keyboard layout (UA–RU)" "already installed"
+  else
+    mkdir -p "$HOME/Library/Keyboard Layouts"
+    cp -R "$KBD_BUNDLE_SRC" "$KBD_BUNDLE_DST"
+    success "Keyboard layout (UA–RU)" "installed to ~/Library/Keyboard Layouts/"
+    echo ""
+    info "  Action required" "Log out and back in, then:"
+    info "  System Settings → Keyboard → Input Sources → +" "enable 'UA–RU–layout'"
+  fi
+fi
+
+# ===========================================
 # Done
 # ===========================================
 

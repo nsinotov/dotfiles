@@ -96,6 +96,32 @@ else
 fi
 
 # ------------------------------------
+# Check keyboard layout (macOS only)
+# ------------------------------------
+
+if [ "$(uname -s)" = "Darwin" ]; then
+  echo ""
+  info "=== Keyboard layout (macOS) ==="
+  echo ""
+
+  KBD_BUNDLE_DST="$HOME/Library/Keyboard Layouts/UA-RU-layout.bundle"
+
+  if [ -d "$KBD_BUNDLE_DST" ]; then
+    success "OK: UA-RU-layout.bundle (installed)"
+    # Check if the layout is also active in input sources
+    if defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null \
+        | grep -q "ua_ru_layout"; then
+      success "OK: UA–RU–layout (enabled in input sources)"
+    else
+      warn "NOT ENABLED: UA–RU–layout is installed but not active"
+      warn "  → System Settings → Keyboard → Input Sources → + → 'UA–RU–layout'"
+    fi
+  else
+    warn "MISSING: UA-RU-layout.bundle (run install.sh)"
+  fi
+fi
+
+# ------------------------------------
 # Check repo for uncommitted changes
 # ------------------------------------
 
