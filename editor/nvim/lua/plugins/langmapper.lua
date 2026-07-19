@@ -47,6 +47,9 @@ return {
       -- Do not translate Insert-mode keymaps: Cyrillic typing must remain intact.
       disable_hack_modes = { "i" },
 
+      -- Hide Cyrillic twins from which-key help panel
+      custom_desc = function() return "which_key_ignore" end,
+
       -- Modes in which Cyrillic twins are created during automapping.
       automapping_modes = { "n", "v", "x", "o" },
 
