@@ -83,6 +83,32 @@ window-inherit-working-directory = true
 macos-option-as-alt = left
 
 # ------------------------------------
+# UA-RU Cyrillic Option-key characters
+# ------------------------------------
+# With macos-option-as-alt = left, Left Option bypasses macOS input composition
+# and sends ESC+key instead. These bindings restore the Option+key characters
+# that the Ukrainian/Russian keyboard layout defines. They only fire when the
+# Cyrillic layout is active (base chars like "и" are layout-specific).
+keybind = alt+и=text:ы
+keybind = alt+і=text:ї
+keybind = alt+е=text:ё
+keybind = alt+г=text:ґ
+keybind = alt+ч=text:х
+keybind = alt+ь=text:ъ
+keybind = alt+б=text:,
+keybind = alt+ю=text:.
+keybind = alt+є=text:э
+keybind = shift+alt+и=text:Ы
+keybind = shift+alt+і=text:Ї
+keybind = shift+alt+е=text:Ё
+keybind = shift+alt+г=text:Ґ
+keybind = shift+alt+ч=text:Х
+keybind = shift+alt+ь=text:Ъ
+keybind = shift+alt+б=text:<
+keybind = shift+alt+ю=text:>
+keybind = shift+alt+є=text:Э
+
+# ------------------------------------
 # Keybindings
 # ------------------------------------
 
