@@ -35,3 +35,49 @@ vim.api.nvim_create_autocmd("CmdlineEnter", {
     end
   end,
 })
+
+-- ---- Cyrillic navigation in terminal UIs (lazygit, etc.) ----
+-- Terminal apps receive raw characters from the OS. In UA-RU layout, physical
+-- j/k/h/l/q send Cyrillic о/л/р/д/й — which the app doesn't recognize as
+-- navigation keys. Remap Cyrillic → Latin in terminal mode, scoped to the
+-- lazygit buffer only, so all other terminal buffers are unaffected.
+vim.api.nvim_create_autocmd("TermOpen", {
+  callback = function(ev)
+    local is_lazygit = false
+
+    -- snacks.nvim sets this buffer var before jobstart, so it's available at TermOpen
+    local st = vim.b[ev.buf].snacks_terminal
+    if type(st) == "table" and st.cmd then
+      local cmd = st.cmd
+      if type(cmd) == "string" then
+        is_lazygit = cmd:match("lazygit") ~= nil
+      elseif type(cmd) == "table" then
+        for _, c in ipairs(cmd) do
+          if type(c) == "string" and c:match("lazygit") then
+            is_lazygit = true
+            break
+          end
+        end
+      end
+    end
+
+    -- Fallback for non-snacks terminals: buffer name is term://.../lazygit
+    if not is_lazygit then
+      is_lazygit = vim.api.nvim_buf_get_name(ev.buf):match("lazygit") ~= nil
+    end
+
+    if not is_lazygit then return end
+
+    -- Positional UA-RU → QWERTY for keys lazygit uses for navigation and actions
+    local map = {
+      ['р'] = 'h', ['о'] = 'j', ['л'] = 'k', ['д'] = 'l',
+      ['й'] = 'q', ['г'] = 'u', ['н'] = 'y', ['с'] = 'c',
+      ['и'] = 'b', ['к'] = 'r', ['з'] = 'p', ['в'] = 'd',
+      ['і'] = 's', ['ф'] = 'a', ['п'] = 'g', ['у'] = 'e',
+      ['е'] = 't', ['ш'] = 'i', ['щ'] = 'o', ['м'] = 'v',
+    }
+    for cyr, lat in pairs(map) do
+      vim.keymap.set('t', cyr, lat, { buffer = ev.buf, noremap = true, silent = true })
+    end
+  end,
+})
