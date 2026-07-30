@@ -165,7 +165,7 @@ if [ "$TEST_MODE" = false ]; then
   fi
 
   echo ""
-  success "Backup saved to" "~/.config/dotfiles/backups/$_BACKUP_TS"
+  printf "  \033[1;32m%-50s\033[0m %s\n" "Backup saved to" "~/.config/dotfiles/backups/$_BACKUP_TS"
   unset _BACKUP_TS _BACKUP_DIR _SECRETS_BASE _CLAUDE_DESKTOP
   unset -f _backup_file _backup_dir
 fi
