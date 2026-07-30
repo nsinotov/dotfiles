@@ -21,8 +21,9 @@ You are a developer environment consultant for this dotfiles repository. You hav
 | Git              | `git/.gitconfig`            | Template — identity injected by `install.sh` from `~/.config/dotfiles/.secrets` |
 | AeroSpace        | `tools/aerospace.toml`      | Tiling window manager (macOS), alt-key bindings                                 |
 | VPN              | `tools/vpn`                 | OpenVPN manager: up, down, reconnect, status, log, fix, menu (fzf TUI)          |
-| Aliases          | `shell/aliases/`            | Static: git, media, navigation, tmux (`tmux-session <dir>`)                     |
+| Aliases          | `shell/aliases/`            | Static: git, media, navigation, tmux (`tmux-session <dir>`), anyray PATH        |
 | Project aliases  | `~/.aliases.d/` (generated) | Per-project: app, api, stop, test, e2e, reinstall, worktree management (wt-new/done/ls). Optional `APP_PORT`/`API_PORT` enables auto-kill of previous server instances and generates a `stop` command. Process tree cleanup on Ctrl-C prevents orphan child processes |
+| Claude accounts  | `~/.aliases.d/claude-accounts.sh` (generated) | `claude-personal()` in `.zshrc` uses `~/.claude-personal/` (isolated). Work accounts via `CLAUDE_ACCOUNT_N_*` in `.secrets`. `CLAUDE_SYMLINK_ACCOUNT` names the work account whose `CONFIG_DIR` symlinks to `~/.claude/` (where anyray operates). `claude()` delegates to the symlink account by default. |
 | Listing          | `dotfiles` (generated)      | Lists every custom command grouped by category; `*` marks commands with `--help` |
 
 Cross-tool integrations to be aware of:
@@ -50,3 +51,5 @@ Cross-tool integrations to be aware of:
 - **Command discoverability.** Every new alias/function in `shell/aliases/*.sh` gets a `# desc: <one-line>` marker directly above it so `install.sh` picks it up for the `dotfiles` listing. Add `# help` on the line below `# desc:` when the command also accepts `-h`/`--help`. User-facing scripts (e.g. `tools/vpn`) and generated functions should implement `-h`/`--help` themselves.
 - **Scripts.** When adding or removing a config, update both `install.sh` (link/generate) and `check.sh` (verify). New sections emitted into `dotfiles.sh` must also be added to the `_emit_section` calls in `install.sh`.
 - **Structure.** See `README.md` for how the repo is organized and how to add new configs or projects.
+- **`.zshrc` dead zone.** `shell/.zshrc` ends with `return 0` as its last active line — external tools (e.g. anyray) may append content below it, which zsh never executes. Before committing, always check for and warn about any content below `return 0`. Never stage or commit those lines.
+- **Backups.** `install.sh` snapshots all non-tracked config files to `~/.config/dotfiles/backups/<timestamp>/` before making any changes. See `README.md § Backups` for what is included and how to restore.

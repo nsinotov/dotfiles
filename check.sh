@@ -10,6 +10,18 @@ set -euo pipefail
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ------------------------------------
+# Load secrets (needed for Claude account checks)
+# ------------------------------------
+
+SECRETS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/.secrets"
+if [ -f "$SECRETS_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$SECRETS_FILE"
+  set +a
+fi
+
+# ------------------------------------
 # Helpers
 # ------------------------------------
 
@@ -93,6 +105,52 @@ if [ -f "$HOME/.aliases.d/dotfiles.sh" ]; then
   success "OK: ~/.aliases.d/dotfiles.sh (dotfiles listing command)"
 else
   warn "MISSING: ~/.aliases.d/dotfiles.sh (run install.sh)"
+fi
+
+# ------------------------------------
+# Check Claude Code config dirs
+# ------------------------------------
+
+echo ""
+info "=== Claude Code config dirs ==="
+echo ""
+
+if [ -d "$HOME/.claude-personal" ]; then
+  if [ -f "$HOME/.claude-personal/settings.json" ]; then
+    success "OK: ~/.claude-personal/settings.json"
+  else
+    warn "MISSING: ~/.claude-personal/settings.json (run install.sh)"
+  fi
+else
+  warn "MISSING: ~/.claude-personal/ (run install.sh)"
+fi
+
+if [ -n "${CLAUDE_SYMLINK_ACCOUNT:-}" ]; then
+  _ck_config_dir=""
+  for i in $(seq 1 99); do
+    _ck_name_var="CLAUDE_ACCOUNT_${i}_NAME"; _ck_name="${!_ck_name_var:-}"
+    [ -z "$_ck_name" ] && break
+    if [ "$_ck_name" = "$CLAUDE_SYMLINK_ACCOUNT" ]; then
+      _ck_cfg_var="CLAUDE_ACCOUNT_${i}_CONFIG_DIR"; _ck_config_dir="${!_ck_cfg_var:-}"
+      break
+    fi
+  done
+  unset _ck_name_var _ck_name _ck_cfg_var
+
+  if [ -n "$_ck_config_dir" ]; then
+    if [ -L "$_ck_config_dir" ] && [ "$(readlink "$_ck_config_dir")" = "$HOME/.claude" ]; then
+      success "OK: $CLAUDE_SYMLINK_ACCOUNT config dir → ~/.claude (symlink)"
+    elif [ -L "$_ck_config_dir" ]; then
+      warn "WRONG SYMLINK: $CLAUDE_SYMLINK_ACCOUNT config dir → $(readlink "$_ck_config_dir") (expected ~/.claude)"
+    elif [ -d "$_ck_config_dir" ]; then
+      warn "NOT A SYMLINK: $_ck_config_dir is a real directory — run install.sh to convert"
+    else
+      warn "MISSING: $_ck_config_dir (run install.sh)"
+    fi
+  else
+    warn "CLAUDE_SYMLINK_ACCOUNT=$CLAUDE_SYMLINK_ACCOUNT but no matching CLAUDE_ACCOUNT_N_NAME found"
+  fi
+  unset _ck_config_dir
 fi
 
 # ------------------------------------

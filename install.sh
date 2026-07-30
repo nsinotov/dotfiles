@@ -113,6 +113,64 @@ else
 fi
 
 # ===========================================
+# Phase 0: Backup non-tracked config files
+# ===========================================
+# Snapshots secrets, local alias files, and external tool configs that are
+# part of the dotfiles setup but not managed by git. Runs before any changes.
+
+if [ "$TEST_MODE" = false ]; then
+  _BACKUP_TS="$(date +%Y%m%d%H%M%S)"
+  _BACKUP_DIR="$(dirname "$SECRETS_FILE")/backups/$_BACKUP_TS"
+  mkdir -p "$_BACKUP_DIR"
+
+  _backup_file() {
+    local src="$1" rel="$2"
+    [ -f "$src" ] || return 0
+    mkdir -p "$_BACKUP_DIR/$(dirname "$rel")"
+    cp "$src" "$_BACKUP_DIR/$rel"
+    success "  $rel" "backed up"
+  }
+
+  _backup_dir() {
+    local src="$1" rel="$2"
+    [ -d "$src" ] || return 0
+    cp -R "$src" "$_BACKUP_DIR/$rel"
+    success "  $rel/" "backed up"
+  }
+
+  echo ""
+  echo "Backing up non-tracked configs..."
+  echo ""
+
+  _SECRETS_BASE="$(dirname "$SECRETS_FILE")"
+
+  _backup_file "$SECRETS_FILE"                                          ".secrets"
+  _backup_dir  "$_SECRETS_BASE/aliases.d"                              "aliases.d"
+  _backup_file "$HOME/.claude/settings.json"                           "claude/settings.json"
+  _backup_file "$HOME/.claude-personal/settings.json"                  "claude-personal/settings.json"
+
+  # Back up settings for each configured Claude work account
+  for i in $(seq 1 99); do
+    _acc_name_var="CLAUDE_ACCOUNT_${i}_NAME";       _acc_name="${!_acc_name_var:-}"
+    [ -z "$_acc_name" ] && break
+    _acc_cfg_var="CLAUDE_ACCOUNT_${i}_CONFIG_DIR";  _acc_cfg="${!_acc_cfg_var:-}"
+    [ -n "$_acc_cfg" ] && _backup_file "$_acc_cfg/settings.json" "claude-${_acc_name}/settings.json"
+  done
+  unset _acc_name_var _acc_name _acc_cfg_var _acc_cfg
+
+  if [ "$OS" = "Darwin" ]; then
+    _CLAUDE_DESKTOP="$HOME/Library/Application Support/Claude"
+    _backup_file "$_CLAUDE_DESKTOP/claude_desktop_config.json"         "claude-desktop/claude_desktop_config.json"
+    _backup_file "$_CLAUDE_DESKTOP/config.json"                        "claude-desktop/config.json"
+  fi
+
+  echo ""
+  success "Backup saved to" "~/.config/dotfiles/backups/$_BACKUP_TS"
+  unset _BACKUP_TS _BACKUP_DIR _SECRETS_BASE _CLAUDE_DESKTOP
+  unset -f _backup_file _backup_dir
+fi
+
+# ===========================================
 # Phase 1: Check dependencies
 # ===========================================
 
@@ -730,6 +788,56 @@ done
 if [ "$account_count" -eq 0 ]; then
   info "No Claude work accounts defined" "see .secrets.example"
 fi
+
+# ===========================================
+# Phase 5b: Claude — account symlink & personal config bootstrap
+# ===========================================
+# If CLAUDE_SYMLINK_ACCOUNT is set, symlinks that account's CONFIG_DIR to
+# ~/.claude/ so tools that manage ~/.claude/ (e.g. anyray) affect the right account.
+# Also bootstraps ~/.claude-personal/ for the personal account if it doesn't exist.
+
+echo ""
+echo "Setting up Claude Code config dirs..."
+echo ""
+
+if [ -n "${CLAUDE_SYMLINK_ACCOUNT:-}" ]; then
+  _sl_config_dir=""
+  for i in $(seq 1 99); do
+    _sl_name_var="CLAUDE_ACCOUNT_${i}_NAME"; _sl_name="${!_sl_name_var:-}"
+    [ -z "$_sl_name" ] && break
+    if [ "$_sl_name" = "$CLAUDE_SYMLINK_ACCOUNT" ]; then
+      _sl_cfg_var="CLAUDE_ACCOUNT_${i}_CONFIG_DIR"; _sl_config_dir="${!_sl_cfg_var:-}"
+      break
+    fi
+  done
+  unset _sl_name_var _sl_name _sl_cfg_var
+
+  if [ -n "$_sl_config_dir" ]; then
+    if [ "$TEST_MODE" = true ]; then
+      info "CLAUDE_SYMLINK_ACCOUNT=$CLAUDE_SYMLINK_ACCOUNT" "would symlink $_sl_config_dir → ~/.claude"
+    else
+      link_file "$HOME/.claude" "$_sl_config_dir"
+    fi
+  else
+    fail "CLAUDE_SYMLINK_ACCOUNT=$CLAUDE_SYMLINK_ACCOUNT" "no matching account found — check CLAUDE_ACCOUNT_N_NAME in .secrets"
+  fi
+  unset _sl_config_dir
+fi
+
+_personal_dir="$(target_path "$HOME/.claude-personal")"
+if [ ! -e "$_personal_dir" ]; then
+  mkdir -p "$_personal_dir"
+  _bak="$HOME/.claude/settings.json.anyray-bak"
+  if [ -f "$_bak" ] && [ "$TEST_MODE" = false ]; then
+    cp "$_bak" "$_personal_dir/settings.json"
+    success "$_personal_dir/settings.json" "(bootstrapped from anyray backup)"
+  else
+    success "$_personal_dir" "(created — run claude-personal to authenticate)"
+  fi
+else
+  success "$_personal_dir" "(already exists)"
+fi
+unset _personal_dir _bak
 
 # ===========================================
 # Phase 6: Generate `dotfiles` listing command
