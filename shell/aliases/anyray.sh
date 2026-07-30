@@ -12,16 +12,8 @@ if [ -n "${CLAUDE_SYMLINK_ACCOUNT:-}" ] && [ -d "$HOME/.anyray/bin" ]; then
   esac
 fi
 
-# desc: Start the anyray proxy if it is not running
-# help
-anyray-start() {
-  if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
-    echo "Usage: anyray-start"
-    echo "Ensures the anyray proxy is running at 127.0.0.1:8785."
-    echo "Starts the LaunchAgent if the proxy is not responding."
-    return 0
-  fi
-
+# Internal helper: start anyray proxy if not running. Used by project-prefixed commands.
+_anyray_start() {
   local plist="$HOME/Library/LaunchAgents/ai.anyray.connect.fallback.plist"
 
   if lsof -i :8785 -sTCP:LISTEN -t > /dev/null 2>&1; then
