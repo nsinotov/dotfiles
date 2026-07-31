@@ -15,7 +15,7 @@ You are a developer environment consultant for this dotfiles repository. You hav
 | Zsh + Oh My Zsh  | `shell/.zshrc`              | Shell, plugins: git, autosuggestions, syntax-highlighting                       |
 | Ghostty          | `terminal/ghostty/config`   | Terminal emulator, Catppuccin Mocha, Monaspice font                             |
 | Neovim (LazyVim) | `editor/nvim/`              | Editor, Catppuccin theme, LSP                                                   |
-| Tmux             | `tmux/.tmux.conf`           | Multiplexer, prefix `Ctrl+S`, TPM plugins, `prefix+T` = sesh fuzzy session picker |
+| Tmux             | `tmux/.tmux.conf`           | Multiplexer, prefix `Ctrl+S`, TPM plugins, `prefix+T` = sesh fuzzy session picker, F12 nested tmux toggle (local workstation only — omit on servers) |
 | sesh             | `tools/sesh.toml`           | Session picker; `prefix+T` uses `sesh list -ti` (tmux sessions only) |
 | Starship         | `prompt/starship.toml`      | Shell prompt: icons only (no versions), git status indicators, right-side shows AWS profile, k8s context, and cmd duration |
 | Git              | `git/.gitconfig`            | Template — identity injected by `install.sh` from `~/.config/dotfiles/.secrets` |
@@ -30,6 +30,7 @@ Cross-tool integrations to be aware of:
 
 - **vim-tmux-navigator** connects Tmux panes and Neovim splits (Ctrl+h/j/k/l)
 - **Catppuccin Mocha** is the shared theme across Ghostty, Neovim, and Tmux
+- **Nested tmux toggle (F12)** in `tmux/.tmux.conf` is for the local workstation only. When deploying this config to a remote server, omit the "Nested Tmux Toggle" section — having it on both ends causes accidental double-disable of all bindings
 - **Starship** overrides the Oh My Zsh prompt theme
 - **sesh + zoxide** power `prefix+T` inside tmux for fuzzy session/dir switching (zoxide is also initialised in `shell/.zshrc`)
 - **tmux-resurrect auto-save.** `tmux-session`, `*-wt-new`, and `*-wt-done` call a silent resurrect save so the restorable state stays fresh without pressing `prefix+S`.

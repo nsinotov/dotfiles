@@ -12,7 +12,7 @@ Developer environment configuration files for macOS/Linux.
 | `terminal/`        | Ghostty          | Terminal emulator (Catppuccin Mocha, Monaspice font)          |
 | `editor/`          | Neovim (LazyVim) | Editor with Catppuccin theme, LSP support                     |
 | `git/`             | Git              | Config template, global gitignore, modern defaults            |
-| `tmux/`            | Tmux             | Multiplexer with TPM, vim-tmux-navigator, session persistence, `prefix+T` sesh picker |
+| `tmux/`            | Tmux             | Multiplexer with TPM, vim-tmux-navigator, session persistence, `prefix+T` sesh picker, F12 nested tmux toggle |
 | `prompt/`          | Starship         | Cross-shell prompt (clean, icons only)                        |
 | `tools/`           | AeroSpace, VPN, sesh | Tiling window manager (macOS), OpenVPN connection manager, tmux session picker config |
 
@@ -201,6 +201,12 @@ cp "$SNAP/claude/settings.json" ~/.claude/settings.json
 # Re-run to regenerate everything from .secrets
 ./install.sh
 ```
+
+## Server Deployment
+
+When setting up tmux on a remote server using this config, omit the **"Nested Tmux Toggle (F12)"** section from `.tmux.conf`. That section is for local workstations only — it lets F12 pass all keystrokes through to a remote (nested) tmux. Including it on the server would cause an accidental double-F12 to disable bindings on both ends.
+
+The section is clearly marked with `LOCAL WORKSTATION ONLY` in the config file.
 
 ## Key Design Decisions
 
