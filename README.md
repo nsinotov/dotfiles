@@ -57,6 +57,53 @@ chmod +x install.sh && ./install.sh
 # Press Ctrl+S, then I
 ```
 
+## Dependencies
+
+### Required
+
+| Tool | Why |
+| --- | --- |
+| git | Install script, lazy.nvim bootstrap, diffview, worktree aliases |
+| zsh | Shell — `.zshrc` is zsh-specific |
+| [Oh My Zsh](https://ohmyz.sh/) | Plugin framework — git, zsh-autosuggestions, zsh-syntax-highlighting |
+| [Neovim](https://neovim.io/) (≥ 0.9) | Editor — entire `editor/nvim/` config targets it |
+| C compiler (gcc or clang) | Treesitter needs one to compile parsers |
+| [Node.js](https://nodejs.org/) (via nvm) | LSP servers installed by Mason, LazyVim TypeScript/Prettier/ESLint extras |
+| [ripgrep](https://github.com/BurntSushi/ripgrep) | LazyVim grep/search |
+| [fd](https://github.com/sharkdophin/fd) | LazyVim file finder |
+| [tmux](https://github.com/tmux/tmux) | Multiplexer — `.tmux.conf` and all session management |
+| [TPM](https://github.com/tmux-plugins/tpm) | Tmux plugin manager — vim-tmux-navigator, resurrect, continuum, catppuccin |
+| [fzf](https://github.com/junegunn/fzf) | Sesh picker (`prefix+T`), vpn menu |
+
+### Recommended
+
+| Tool | Why |
+| --- | --- |
+| [Starship](https://starship.rs/) | Shell prompt — `.zshrc` calls `starship init zsh` |
+| [sesh](https://github.com/joshmedeski/sesh) | Tmux session/directory fuzzy switcher |
+| [zoxide](https://github.com/ajeetdsouza/zoxide) | Smarter `cd` — powers sesh directory source |
+| [lazygit](https://github.com/jesseduffield/lazygit) | Git TUI — integrated via LazyVim Snacks terminal |
+| [gh](https://cli.github.com/) | GitHub CLI |
+
+### macOS only
+
+| Tool | Why |
+| --- | --- |
+| [Ghostty](https://ghostty.org/) | Terminal emulator (Catppuccin Mocha, Monaspace Nerd Font) |
+| [AeroSpace](https://github.com/nikitabobko/AeroSpace) | Tiling window manager |
+| [JankyBorders](https://github.com/FelixKratz/JankyBorders) | Focused-window border highlight (launched by AeroSpace) |
+| [macism](https://github.com/laishulu/macism) | Input-method switcher for Cyrillic safety net in Neovim |
+| [Monaspace Nerd Font](https://github.com/ryanoasis/nerd-fonts) | Terminal and editor font |
+
+### Optional (specific features)
+
+| Tool | Used by |
+| --- | --- |
+| ffmpeg | `compress-mov`, `compress-mp4` aliases |
+| ghostscript | `compress-pdf` alias |
+| openvpn | `vpn` script (`tools/vpn`) |
+| xclip | Tmux copy-mode on Linux (macOS uses pbcopy) |
+
 ## Adding a Project
 
 Define project variables in `~/.config/dotfiles/.secrets` and re-run `install.sh`:

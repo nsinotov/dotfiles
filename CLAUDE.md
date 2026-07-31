@@ -54,3 +54,4 @@ Cross-tool integrations to be aware of:
 - **Structure.** See `README.md` for how the repo is organized and how to add new configs or projects.
 - **`.zshrc` dead zone.** `shell/.zshrc` ends with `return 0` as its last active line — external tools (e.g. anyray) may append content below it, which zsh never executes. Before committing, always check for and warn about any content below `return 0`. Never stage or commit those lines.
 - **Backups.** `install.sh` snapshots all non-tracked config files to `~/.config/dotfiles/backups/<timestamp>/` before making any changes. See `README.md § Backups` for what is included and how to restore.
+- **Dependencies.** When adding a plugin, tool, or config that requires a new system dependency, update the Dependencies tables in `README.md`. Place the tool in the correct category (Required, Recommended, macOS only, or Optional).
