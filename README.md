@@ -39,9 +39,10 @@ Developer environment configuration files for macOS/Linux.
 ## Quick Start
 
 ```bash
-# 1. Clone the repo
-git clone <repo-url> ~/dotfiles
-cd ~/dotfiles
+# 1. Clone the repo — location doesn't matter, install.sh/check.sh
+#    detect their own directory automatically (e.g. ~/.dotfiles)
+git clone <repo-url> ~/.dotfiles
+cd ~/.dotfiles
 
 # 2. Set up secrets
 cp .secrets.example ~/.config/dotfiles/.secrets
