@@ -1044,9 +1044,11 @@ success "dotfiles command" "→ $dotfiles_outfile"
 # ===========================================
 # Phase 7: Keyboard layout — UA–RU (macOS only)
 # ===========================================
-# Copies the bundled UA–RU keyboard layout to ~/Library/Keyboard Layouts/ so
-# it appears in System Settings > Keyboard > Input Sources. A logout/login cycle
-# is required before the layout becomes selectable after the first install.
+# Symlinks the bundled UA–RU keyboard layout into ~/Library/Keyboard Layouts/
+# so it appears in System Settings > Keyboard > Input Sources, same as every
+# other config in this repo (see link_file). Since it's a symlink, edits to
+# the bundle in the repo are picked up automatically — no re-run needed,
+# though macOS still requires a logout/login cycle to reload keyboard layouts.
 # Layout source: keyboards/UA-RU-layout.bundle (created with Ukelele)
 
 if [ "$OS" = "Darwin" ]; then
@@ -1054,21 +1056,18 @@ if [ "$OS" = "Darwin" ]; then
   echo "Checking keyboard layout..."
   echo ""
 
-  KBD_BUNDLE_SRC="$DOTFILES_DIR/keyboards/UA-RU-layout.bundle"
   KBD_BUNDLE_DST="$HOME/Library/Keyboard Layouts/UA-RU-layout.bundle"
+  _kbd_first_install=true
+  { [ -e "$KBD_BUNDLE_DST" ] || [ -L "$KBD_BUNDLE_DST" ]; } && _kbd_first_install=false
 
-  if [ "$TEST_MODE" = true ]; then
-    info "Keyboard layout (UA–RU)" "skipped in test mode (system install)"
-  elif [ -d "$KBD_BUNDLE_DST" ]; then
-    success "Keyboard layout (UA–RU)" "already installed"
-  else
-    mkdir -p "$HOME/Library/Keyboard Layouts"
-    cp -R "$KBD_BUNDLE_SRC" "$KBD_BUNDLE_DST"
-    success "Keyboard layout (UA–RU)" "installed to ~/Library/Keyboard Layouts/"
+  link_file "$DOTFILES_DIR/keyboards/UA-RU-layout.bundle" "$KBD_BUNDLE_DST"
+
+  if [ "$_kbd_first_install" = true ] && [ "$TEST_MODE" = false ]; then
     echo ""
     info "  Action required" "Log out and back in, then:"
     info "  System Settings → Keyboard → Input Sources → +" "enable 'UA–RU–layout'"
   fi
+  unset _kbd_first_install
 fi
 
 # ===========================================

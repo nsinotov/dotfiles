@@ -67,6 +67,7 @@ check_symlink "$HOME/.gitignore"                "$DOTFILES_DIR/git/.gitignore"
 check_symlink "$HOME/.config/sesh/sesh.toml"    "$DOTFILES_DIR/tools/sesh.toml"
 check_symlink "$HOME/.aerospace.toml"           "$DOTFILES_DIR/tools/aerospace.toml"
 check_symlink "$HOME/bin/vpn"                   "$DOTFILES_DIR/tools/vpn"
+check_symlink "$HOME/Library/Keyboard Layouts/UA-RU-layout.bundle" "$DOTFILES_DIR/keyboards/UA-RU-layout.bundle"
 
 # ------------------------------------
 # Check generated files
@@ -162,20 +163,14 @@ if [ "$(uname -s)" = "Darwin" ]; then
   info "=== Keyboard layout (macOS) ==="
   echo ""
 
-  KBD_BUNDLE_DST="$HOME/Library/Keyboard Layouts/UA-RU-layout.bundle"
-
-  if [ -d "$KBD_BUNDLE_DST" ]; then
-    success "OK: UA-RU-layout.bundle (installed)"
-    # Check if the layout is also active in input sources
-    if defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null \
-        | grep -q "ua_ru_layout"; then
-      success "OK: UA–RU–layout (enabled in input sources)"
-    else
-      warn "NOT ENABLED: UA–RU–layout is installed but not active"
-      warn "  → System Settings → Keyboard → Input Sources → + → 'UA–RU–layout'"
-    fi
+  # Bundle symlink itself is verified above with the other configs.
+  # Check if the layout is also active in input sources.
+  if defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null \
+      | grep -q "ua_ru_layout"; then
+    success "OK: UA–RU–layout (enabled in input sources)"
   else
-    warn "MISSING: UA-RU-layout.bundle (run install.sh)"
+    warn "NOT ENABLED: UA–RU–layout is installed but not active"
+    warn "  → System Settings → Keyboard → Input Sources → + → 'UA–RU–layout'"
   fi
 fi
 
