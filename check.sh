@@ -67,7 +67,6 @@ check_symlink "$HOME/.gitignore"                "$DOTFILES_DIR/git/.gitignore"
 check_symlink "$HOME/.config/sesh/sesh.toml"    "$DOTFILES_DIR/tools/sesh.toml"
 check_symlink "$HOME/.aerospace.toml"           "$DOTFILES_DIR/tools/aerospace.toml"
 check_symlink "$HOME/bin/vpn"                   "$DOTFILES_DIR/tools/vpn"
-check_symlink "$HOME/Library/Keyboard Layouts/UA-RU-layout.bundle" "$DOTFILES_DIR/keyboards/UA-RU-layout.bundle"
 
 # ------------------------------------
 # Check generated files
@@ -163,8 +162,24 @@ if [ "$(uname -s)" = "Darwin" ]; then
   info "=== Keyboard layout (macOS) ==="
   echo ""
 
-  # Bundle symlink itself is verified above with the other configs.
-  # Check if the layout is also active in input sources.
+  # This bundle is copied, not symlinked (see install.sh Phase 7 — sandboxed
+  # processes can't read a symlink that resolves outside ~/Library/Keyboard
+  # Layouts/). Check it's a real copy in sync with the repo, then whether
+  # the layout is also active in input sources.
+  KBD_BUNDLE_DST="$HOME/Library/Keyboard Layouts/UA-RU-layout.bundle"
+  KBD_BUNDLE_SRC="$DOTFILES_DIR/keyboards/UA-RU-layout.bundle"
+
+  if [ -L "$KBD_BUNDLE_DST" ]; then
+    warn "SYMLINK: $KBD_BUNDLE_DST (must be a real copy — run install.sh)"
+  elif [ ! -e "$KBD_BUNDLE_DST" ]; then
+    warn "MISSING: $KBD_BUNDLE_DST (run install.sh)"
+  elif diff -rq "$KBD_BUNDLE_SRC" "$KBD_BUNDLE_DST" >/dev/null 2>&1; then
+    success "OK: $KBD_BUNDLE_DST (in sync with repo)"
+  else
+    warn "OUT OF DATE: $KBD_BUNDLE_DST differs from repo (run install.sh)"
+  fi
+  unset KBD_BUNDLE_DST KBD_BUNDLE_SRC
+
   if defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null \
       | grep -q "ua_ru_layout"; then
     success "OK: UA–RU–layout (enabled in input sources)"
