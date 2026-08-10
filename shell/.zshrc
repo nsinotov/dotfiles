@@ -74,6 +74,11 @@ fi
 # Local binaries and custom scripts
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
+# Homebrew Ruby gems
+if [ -d "/opt/homebrew/lib/ruby/gems/4.0.0/bin" ]; then
+  export PATH="/opt/homebrew/lib/ruby/gems/4.0.0/bin:$PATH"
+fi
+
 # ------------------------------------
 # Aliases — static (from dotfiles repo)
 # ------------------------------------
