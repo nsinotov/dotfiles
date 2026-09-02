@@ -690,9 +690,12 @@ WTDONE_TMUX
     cat >> "$outfile" <<WTDONE_REMOVE
   if git worktree remove --force "\$wt_path" 2>/dev/null; then
     removed+=("worktree: \$wt_name")
-    removed+=("directory: \$wt_name")
-  elif [ -d "\$wt_path" ]; then
+  fi
+  # Directory may survive git worktree remove (locked files, cwd inside it)
+  if [ -d "\$wt_path" ]; then
     rm -rf "\$wt_path"
+  fi
+  if [ ! -d "\$wt_path" ]; then
     removed+=("directory: \$wt_name")
   fi
   # Force-delete: wt-done is explicit cleanup, so unmerged branches should still be removed
