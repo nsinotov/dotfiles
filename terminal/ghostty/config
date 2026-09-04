@@ -29,7 +29,7 @@ font-feature = -ss10
 font-thicken = true
 
 # Extra vertical spacing between lines
-adjust-cell-height = 1
+adjust-cell-height = 2
 
 # ------------------------------------
 # Theme
