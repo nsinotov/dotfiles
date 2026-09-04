@@ -48,3 +48,18 @@ vim.opt.langmap = table.concat({
 --   Command-line input (:w, :q, etc.): langmap translates Ж→':' to enter
 --     command mode, but keys typed inside the command line are raw — see the
 --     CmdlineEnter autocmd in autocmds.lua for the safety-net IM switch.
+
+-- ---- Neovide (GUI frontend) ----
+if vim.g.neovide then
+  vim.o.guifont = "MonaspiceNe Nerd Font Mono:h14:#e-calt:#e-liga:#e-dlig:#e-ss01:#e-ss02:#e-ss03:#e-ss04:#e-ss05:#e-ss06:#e-ss07:#e-ss08:#e-ss09:#e-ss10"
+  vim.o.linespace = 3
+  vim.g.neovide_cursor_animation_length = 0.04
+  vim.g.neovide_scroll_animation_length = 0.1
+  vim.g.neovide_cursor_trail_size = 0.3
+
+  -- macOS standard clipboard shortcuts
+  vim.keymap.set({ "n", "v" }, "<D-c>", '"+y')
+  vim.keymap.set({ "n", "v" }, "<D-v>", '"+p')
+  vim.keymap.set("i", "<D-v>", "<C-r>+")
+  vim.keymap.set({ "c", "t" }, "<D-v>", "<C-r>+")
+end

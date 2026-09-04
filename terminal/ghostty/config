@@ -26,11 +26,10 @@ font-feature = -ss08
 font-feature = -ss09
 font-feature = -ss10
 
-# Thicker strokes for better readability on Retina
 font-thicken = true
 
 # Extra vertical spacing between lines
-adjust-cell-height = 3
+adjust-cell-height = 1
 
 # ------------------------------------
 # Theme
