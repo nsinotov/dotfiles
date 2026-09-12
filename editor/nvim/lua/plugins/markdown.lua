@@ -1,4 +1,15 @@
 return {
+  -- ---- Markdown completion ----
+  -- Disable autocomplete in markdown — too noisy for prose
+  {
+    "saghen/blink.cmp",
+    opts = {
+      enabled = function()
+        return vim.bo.filetype ~= "markdown"
+      end,
+    },
+  },
+
   -- ---- Markdown linting ----
   -- Disable markdownlint — we only care about rendering, not lint rules
   {
