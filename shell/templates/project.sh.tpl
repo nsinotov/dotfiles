@@ -51,7 +51,7 @@
 #                             Each entry creates a tmux window with that many panes.
 #                             Layout is optional (e.g. tiled, even-horizontal, even-vertical).
 #                             All panes start in the worktree directory.
-#                             Example: "main:4:tiled agent:1 ide:1"
+#                             Example: "bash:4:tiled agent:1 code:1"
 #
 # Worktrees are placed as siblings to the repo: <name>-<sanitized-branch>
 # Branch slashes are replaced with dashes in the directory name.
@@ -81,7 +81,7 @@
 #   PROJECT_1_WT_REPO="$HOME/projects/myapp"
 #   PROJECT_1_WT_ENV_FILES=".env apps/app/.env apps/api/.env"
 #   PROJECT_1_WT_INSTALL="pnpm install"
-#   PROJECT_1_TMUX_WINDOWS="main:4:tiled agent:1 ide:1"
+#   PROJECT_1_TMUX_WINDOWS="bash:4:tiled agent:1 code:1"
 #
 # Generated output (~/.aliases.d/project-myapp.sh):
 #
