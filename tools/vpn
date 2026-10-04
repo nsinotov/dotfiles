@@ -95,9 +95,27 @@ start_openvpn() {
     --daemon \
     --log "$LOG" \
     --writepid "$PID_FILE" \
-    --ping 10 \
-    --ping-restart 60
+    --data-ciphers "AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-256-CBC"
   sudo chmod a+r "$LOG" "$PID_FILE" 2>/dev/null
+}
+
+# Wait until the tunnel is established; fail fast on errors instead of reporting a false "UP"
+wait_connected() {
+  local i
+  for i in $(seq 1 30); do
+    if grep -q "Initialization Sequence Completed" "$LOG" 2>/dev/null; then
+      return 0
+    fi
+    if grep -qE "AUTH_FAILED|Exiting due to fatal error|Options error" "$LOG" 2>/dev/null \
+      || ! is_running; then
+      break
+    fi
+    sleep 1
+  done
+  echo -e "${RED}VPN failed to connect${NC}. Last log lines:"
+  tail -n 8 "$LOG" 2>/dev/null | cut -c1-160
+  kill_cli_openvpn
+  return 1
 }
 
 # Kill CLI openvpn and clean up VPN network state
@@ -166,7 +184,7 @@ vpn_up() {
 
   echo "Starting VPN..."
   start_openvpn
-  sleep 3
+  wait_connected || return 1
   vpn_status
 }
 
@@ -186,7 +204,7 @@ vpn_reconnect() {
   echo "Reconnecting VPN..."
   kill_cli_openvpn
   start_openvpn
-  sleep 3
+  wait_connected || return 1
   vpn_status
 }
 
