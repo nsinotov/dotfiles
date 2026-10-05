@@ -20,6 +20,12 @@
 #   PROJECT_<N>_E2E         Command to run e2e tests
 #   PROJECT_<N>_REINSTALL   Command to clean and reinstall deps
 #
+# Optional (pre-flight gate):
+#
+#   PROJECT_<N>_PRETEST     Command run before app/api/test; aborts (no server
+#                           start) if it exits non-zero. Generic hook — has no
+#                           awareness of what the command checks.
+#
 # Optional (auto-kill previous server on port):
 #
 #   PROJECT_<N>_APP_PORT    Port(s) the app listens on (space-separated if multiple)

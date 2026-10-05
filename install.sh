@@ -461,6 +461,7 @@ for i in $(seq 1 99); do
   test_var="PROJECT_${i}_TEST";           test_cmd="${!test_var:-}"
   e2e_var="PROJECT_${i}_E2E";             e2e="${!e2e_var:-}"
   reinstall_var="PROJECT_${i}_REINSTALL"; reinstall="${!reinstall_var:-}"
+  pretest_var="PROJECT_${i}_PRETEST";     pretest="${!pretest_var:-}"
   wt_repo_var="PROJECT_${i}_WT_REPO";     wt_repo="${!wt_repo_var:-}"
   wt_branch_var="PROJECT_${i}_WT_BRANCH"; wt_branch="${!wt_branch_var:-main}"
   wt_env_var="PROJECT_${i}_WT_ENV_FILES"; wt_env="${!wt_env_var:-}"
@@ -475,16 +476,38 @@ for i in $(seq 1 99); do
 
 PROJEOF
 
-  if [ -n "$app" ] && [ -n "$app_port" ]; then
-    echo "alias ${name}-app='_run_on_port ${app_port} -- ${app}'" >> "$outfile"
-  elif [ -n "$app" ]; then
-    echo "alias ${name}-app='${app}'" >> "$outfile"
+  # Prefix with the pretest hook when configured; aborts before the real
+  # command runs if the hook exits non-zero.
+  app_cmd="$app"; api_cmd="$api"; test_run_cmd="$test_cmd"
+  if [ -n "$pretest" ]; then
+    [ -n "$app_cmd" ]       && app_cmd="${pretest} && ${app_cmd}"
+    [ -n "$api_cmd" ]       && api_cmd="${pretest} && ${api_cmd}"
+    [ -n "$test_run_cmd" ]  && test_run_cmd="${pretest} && ${test_run_cmd}"
   fi
 
-  if [ -n "$api" ] && [ -n "$api_port" ]; then
-    echo "alias ${name}-api='_run_on_port ${api_port} -- ${api}'" >> "$outfile"
-  elif [ -n "$api" ]; then
-    echo "alias ${name}-api='${api}'" >> "$outfile"
+  # When pretest is combined with a port, app_cmd/api_cmd contain "&&".
+  # _run_on_port takes everything after "--" as one command to exec via
+  # "$@", so a bare "&&" would be parsed by the outer shell instead,
+  # splitting off the real server command and running it unwrapped (no
+  # port-kill). Wrap in `bash -c "..."` so it's passed through as one arg.
+  if [ -n "$app_cmd" ] && [ -n "$app_port" ]; then
+    if [ -n "$pretest" ]; then
+      echo "alias ${name}-app='_run_on_port ${app_port} -- bash -c \"${app_cmd}\"'" >> "$outfile"
+    else
+      echo "alias ${name}-app='_run_on_port ${app_port} -- ${app_cmd}'" >> "$outfile"
+    fi
+  elif [ -n "$app_cmd" ]; then
+    echo "alias ${name}-app='${app_cmd}'" >> "$outfile"
+  fi
+
+  if [ -n "$api_cmd" ] && [ -n "$api_port" ]; then
+    if [ -n "$pretest" ]; then
+      echo "alias ${name}-api='_run_on_port ${api_port} -- bash -c \"${api_cmd}\"'" >> "$outfile"
+    else
+      echo "alias ${name}-api='_run_on_port ${api_port} -- ${api_cmd}'" >> "$outfile"
+    fi
+  elif [ -n "$api_cmd" ]; then
+    echo "alias ${name}-api='${api_cmd}'" >> "$outfile"
   fi
   # Generate stop command when at least one port is configured
   if [ -n "$app_port" ] || [ -n "$api_port" ]; then
@@ -505,7 +528,7 @@ ${orphan_lines}  printf "\033[1;32m✓ All servers stopped.\033[0m\n"
 STOPEOF
   fi
 
-  [ -n "$test_cmd" ]  && echo "alias ${name}-test='${test_cmd}'"     >> "$outfile"
+  [ -n "$test_run_cmd" ]  && echo "alias ${name}-test='${test_run_cmd}'" >> "$outfile"
   [ -n "$e2e" ]       && echo "alias ${name}-e2e='${e2e}'"           >> "$outfile"
   [ -n "$reinstall" ] && echo "alias ${name}-reinstall='${reinstall}'" >> "$outfile"
 
