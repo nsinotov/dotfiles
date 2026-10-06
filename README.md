@@ -14,7 +14,8 @@ Developer environment configuration files for macOS/Linux.
 | `git/`             | Git              | Config template, global gitignore, modern defaults            |
 | `tmux/`            | Tmux             | Multiplexer with TPM, vim-tmux-navigator, session persistence, `prefix+T` sesh picker, F12 nested tmux toggle |
 | `prompt/`          | Starship         | Cross-shell prompt (clean, icons only)                        |
-| `tools/`           | AeroSpace, VPN, sesh | Tiling window manager (macOS), OpenVPN connection manager, tmux session picker config |
+| `tools/`           | AeroSpace, VPN, sesh, Claude status line | Tiling window manager (macOS), OpenVPN connection manager, tmux session picker config, Claude Code status line script |
+| `keyboards/`       | UA-RU layout     | Custom macOS keyboard layout bundle (copied to `~/Library/Keyboard Layouts/`) |
 
 ## Architecture
 
@@ -103,6 +104,7 @@ chmod +x install.sh && ./install.sh
 | ffmpeg | `compress-mov`, `compress-mp4` aliases |
 | ghostscript | `compress-pdf` alias |
 | openvpn | `vpn` script (`tools/vpn`) |
+| jq | Claude Code status line (`tools/claude-statusline.sh`) |
 | xclip | Tmux copy-mode on Linux (macOS uses pbcopy) |
 
 ## Adding a Project
@@ -127,6 +129,8 @@ When `APP_PORT` or `API_PORT` is set:
 - Running `myapp-app` / `myapp-api` will automatically kill any process already listening on that port before starting the server. This lets you switch between worktrees without manually finding and stopping the old instance — just run the command and it takes over.
 - On Ctrl-C, the full process tree is cleaned up (including child processes that escape the terminal's process group, e.g. nx executor workers).
 - `myapp-stop` kills all app and API server processes on the configured ports.
+
+When `PROJECT_1_PRETEST="<command>"` is set, it runs before `myapp-app`, `myapp-api` and `myapp-test`; a non-zero exit aborts the command (e.g. a dependency pre-flight check).
 
 When `PROJECT_1_ENV="KEY=val OTHER=val2"` is set, those variables are injected (via `env`) into `myapp-app`, `myapp-api`, `myapp-test` and `myapp-e2e` only — they are not exported to the whole shell. Use it for project-scoped settings such as `NX_SELF_HOSTED_REMOTE_CACHE_SERVER`. Values must not contain spaces.
 
@@ -212,6 +216,8 @@ The setup supports one personal account and any number of work accounts, each fu
 
 ### Adding a work account
 
+A work account does not need proxy variables. With only `NAME` and `CONFIG_DIR`, `claude-<name>` is an isolated plain login: run it once and sign in with `/login` (e.g. a claude.ai Max plan).
+
 ```bash
 # In ~/.config/dotfiles/.secrets
 CLAUDE_ACCOUNT_2_NAME=newco
@@ -221,6 +227,27 @@ CLAUDE_ACCOUNT_2_EXTRA_VARS="ANTHROPIC_BASE_URL=http://proxy ANTHROPIC_AUTH_TOKE
 # Re-run install.sh to generate the claude-newco() function
 ./install.sh
 ```
+
+## Claude Status Line
+
+`tools/claude-statusline.sh` renders a two-line status bar for Claude Code (requires `jq`):
+
+```
+[Sonnet 5.5 · personal] 📁 myapp | 🌿 feature/auth
+████░░░░░░ 42% | 5h █░░░░░ 12% | 7d ████░░ 78% | $0.02 | ⏱️ 2m 5s
+```
+
+- Line 1: model, account name (derived from `CLAUDE_CONFIG_DIR`, so each `claude-<name>` shows its own), folder, git branch.
+- Line 2: context-window bar, 5-hour and weekly subscription limit bars, session cost, duration. Bars are green below 70%, yellow from 70%, red from 90%.
+- The `5h` / `7d` bars appear only for claude.ai Pro/Max logins, and only after the first response in a session. Accounts routed through a proxy don't send them.
+
+Each account has its own `settings.json`, so enable it per account by adding this to `<CONFIG_DIR>/settings.json` of every account (`~/.claude-personal/`, plus each work account's `CONFIG_DIR`):
+
+```json
+{ "statusLine": { "type": "command", "command": "<repo path>/tools/claude-statusline.sh" } }
+```
+
+`install.sh` does not manage these `settings.json` files (it only backs them up), so this is a one-time manual step per account.
 
 ## Backups
 

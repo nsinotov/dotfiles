@@ -26,9 +26,15 @@
 #                           start) if it exits non-zero. Generic hook — has no
 #                           awareness of what the command checks.
 #
+# Optional (project-scoped environment):
+#
+#   PROJECT_<N>_ENV         Space-separated KEY=value pairs injected (via `env`)
+#                           into <name>-app/-api/-test/-e2e only — not exported
+#                           to the whole shell. Values must not contain spaces.
+#
 # Optional (auto-kill previous server on port):
 #
-#   PROJECT_<N>_APP_PORT    Port(s) the app listens on (space-separated if multiple)
+#   PROJECT_<N>_APP_PORT   Port(s) the app listens on (space-separated if multiple)
 #   PROJECT_<N>_API_PORT    Port(s) the API listens on (space-separated if multiple)
 #
 #   When set, <name>-app / <name>-api will kill any process listening on those

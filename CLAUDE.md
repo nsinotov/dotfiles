@@ -24,6 +24,7 @@ You are a developer environment consultant for this dotfiles repository. You hav
 | Aliases          | `shell/aliases/`            | Static: git, media, navigation, tmux (`tmux-session <dir>`), anyray PATH        |
 | Project aliases  | `~/.aliases.d/` (generated) | Per-project: app, api, stop, test, e2e, reinstall, worktree management (wt-new/done/ls). Optional `APP_PORT`/`API_PORT` enables auto-kill of previous server instances and generates a `stop` command. Process tree cleanup on Ctrl-C prevents orphan child processes |
 | Claude accounts  | `~/.aliases.d/claude-accounts.sh` (generated) | `claude-personal()` in `.zshrc` uses `~/.claude-personal/` (isolated). Work accounts via `CLAUDE_ACCOUNT_N_*` in `.secrets`. `CLAUDE_SYMLINK_ACCOUNT` names the work account whose `CONFIG_DIR` symlinks to `~/.claude/` (where anyray operates). `claude()` delegates to the symlink account by default. |
+| Claude status line | `tools/claude-statusline.sh` | Two-line Claude Code status (requires `jq`): `[model · account] 📁 dir \| 🌿 branch`, then context/5h/7d bars, cost, duration. Account name comes from `CLAUDE_CONFIG_DIR`. Enabled per account via `statusLine` in each account's `settings.json` (not managed by `install.sh`) |
 | Listing          | `dotfiles` (generated)      | Lists every custom command grouped by category; `*` marks commands with `--help` |
 
 Cross-tool integrations to be aware of:
