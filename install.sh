@@ -462,6 +462,7 @@ for i in $(seq 1 99); do
   e2e_var="PROJECT_${i}_E2E";             e2e="${!e2e_var:-}"
   reinstall_var="PROJECT_${i}_REINSTALL"; reinstall="${!reinstall_var:-}"
   pretest_var="PROJECT_${i}_PRETEST";     pretest="${!pretest_var:-}"
+  proj_env_var="PROJECT_${i}_ENV";        proj_env="${!proj_env_var:-}"
   wt_repo_var="PROJECT_${i}_WT_REPO";     wt_repo="${!wt_repo_var:-}"
   wt_branch_var="PROJECT_${i}_WT_BRANCH"; wt_branch="${!wt_branch_var:-main}"
   wt_env_var="PROJECT_${i}_WT_ENV_FILES"; wt_env="${!wt_env_var:-}"
@@ -479,6 +480,16 @@ PROJEOF
   # Prefix with the pretest hook when configured; aborts before the real
   # command runs if the hook exits non-zero.
   app_cmd="$app"; api_cmd="$api"; test_run_cmd="$test_cmd"
+
+  # Per-project env vars (PROJECT_<N>_ENV="KEY=val ...") are injected via `env`,
+  # so they reach only the real command and survive _run_on_port's "$@" exec.
+  if [ -n "$proj_env" ]; then
+    [ -n "$app_cmd" ]      && app_cmd="env ${proj_env} ${app_cmd}"
+    [ -n "$api_cmd" ]      && api_cmd="env ${proj_env} ${api_cmd}"
+    [ -n "$test_run_cmd" ] && test_run_cmd="env ${proj_env} ${test_run_cmd}"
+    [ -n "$e2e" ]          && e2e="env ${proj_env} ${e2e}"
+  fi
+
   if [ -n "$pretest" ]; then
     [ -n "$app_cmd" ]       && app_cmd="${pretest} && ${app_cmd}"
     [ -n "$api_cmd" ]       && api_cmd="${pretest} && ${api_cmd}"

@@ -128,6 +128,8 @@ When `APP_PORT` or `API_PORT` is set:
 - On Ctrl-C, the full process tree is cleaned up (including child processes that escape the terminal's process group, e.g. nx executor workers).
 - `myapp-stop` kills all app and API server processes on the configured ports.
 
+When `PROJECT_1_ENV="KEY=val OTHER=val2"` is set, those variables are injected (via `env`) into `myapp-app`, `myapp-api`, `myapp-test` and `myapp-e2e` only — they are not exported to the whole shell. Use it for project-scoped settings such as `NX_SELF_HOSTED_REMOTE_CACHE_SERVER`. Values must not contain spaces.
+
 ### Worktree management
 
 Add worktree variables to enable `wt-new`, `wt-done`, and `wt-ls` functions:
