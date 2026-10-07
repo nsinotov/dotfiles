@@ -9,6 +9,7 @@
 #   <name>-stop        Kill all app and API server processes (when ports are configured)
 #   <name>-test        Run the test suite
 #   <name>-e2e         Run end-to-end tests
+#   <name>-storybook   Run Storybook
 #   <name>-install     Install dependencies
 #   <name>-reinstall   Clean dependencies and reinstall
 #
@@ -19,12 +20,14 @@
 #   PROJECT_<N>_API         Command to start the API
 #   PROJECT_<N>_TEST        Command to run tests
 #   PROJECT_<N>_E2E         Command to run e2e tests
+#   PROJECT_<N>_STORYBOOK   Command to run Storybook
 #   PROJECT_<N>_INSTALL     Command to install deps
 #   PROJECT_<N>_REINSTALL   Command to clean and reinstall deps
 #
 # Optional (pre-flight gate):
 #
-#   PROJECT_<N>_PRETEST     Command run before app/api/test/install/reinstall
+#   PROJECT_<N>_PRETEST     Command run before app/api/test/storybook/
+#                           install/reinstall
 #                           and before WT_INSTALL in wt-new; aborts if it
 #                           exits non-zero. Generic hook — has no
 #                           awareness of what the command checks.
@@ -92,6 +95,7 @@
 #   PROJECT_1_API_PORT=8081
 #   PROJECT_1_TEST="yarn nx affected --target=test --maxParallel=2"
 #   PROJECT_1_E2E="yarn nx e2e app-e2e --watch"
+#   PROJECT_1_STORYBOOK="yarn storybook"
 #   PROJECT_1_INSTALL="yarn"
 #   PROJECT_1_REINSTALL="find . -name node_modules -type d -prune -exec rm -rf {} + && yarn"
 #   PROJECT_1_WT_REPO="$HOME/projects/myapp"
@@ -106,6 +110,7 @@
 #   myapp-stop()  { ... }   # Kill all servers on ports 3000 & 8081
 #   alias myapp-test='yarn nx affected --target=test --maxParallel=2'
 #   alias myapp-e2e='yarn nx e2e app-e2e --watch'
+#   alias myapp-storybook='yarn storybook'
 #   alias myapp-install='yarn'
 #   alias myapp-reinstall='find . -name node_modules -type d -prune -exec rm -rf {} + && yarn'
 #

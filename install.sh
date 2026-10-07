@@ -460,6 +460,7 @@ for i in $(seq 1 99); do
   api_port_var="PROJECT_${i}_API_PORT";   api_port="${!api_port_var:-}"
   test_var="PROJECT_${i}_TEST";           test_cmd="${!test_var:-}"
   e2e_var="PROJECT_${i}_E2E";             e2e="${!e2e_var:-}"
+  storybook_var="PROJECT_${i}_STORYBOOK"; storybook="${!storybook_var:-}"
   reinstall_var="PROJECT_${i}_REINSTALL"; reinstall="${!reinstall_var:-}"
   install_var="PROJECT_${i}_INSTALL";     install_cmd="${!install_var:-}"
   pretest_var="PROJECT_${i}_PRETEST";     pretest="${!pretest_var:-}"
@@ -489,12 +490,14 @@ PROJEOF
     [ -n "$api_cmd" ]      && api_cmd="env ${proj_env} ${api_cmd}"
     [ -n "$test_run_cmd" ] && test_run_cmd="env ${proj_env} ${test_run_cmd}"
     [ -n "$e2e" ]          && e2e="env ${proj_env} ${e2e}"
+    [ -n "$storybook" ]    && storybook="env ${proj_env} ${storybook}"
   fi
 
   if [ -n "$pretest" ]; then
     [ -n "$app_cmd" ]       && app_cmd="${pretest} && ${app_cmd}"
     [ -n "$api_cmd" ]       && api_cmd="${pretest} && ${api_cmd}"
     [ -n "$test_run_cmd" ]  && test_run_cmd="${pretest} && ${test_run_cmd}"
+    [ -n "$storybook" ]     && storybook="${pretest} && ${storybook}"
     # Dependency installs run lifecycle scripts (e.g. postinstall) from the branch
     [ -n "$install_cmd" ]   && install_cmd="${pretest} && ${install_cmd}"
     [ -n "$reinstall" ]     && reinstall="${pretest} && ${reinstall}"
@@ -545,6 +548,7 @@ STOPEOF
 
   [ -n "$test_run_cmd" ]  && echo "alias ${name}-test='${test_run_cmd}'" >> "$outfile"
   [ -n "$e2e" ]       && echo "alias ${name}-e2e='${e2e}'"           >> "$outfile"
+  [ -n "$storybook" ] && echo "alias ${name}-storybook='${storybook}'" >> "$outfile"
   [ -n "$install_cmd" ] && echo "alias ${name}-install='${install_cmd}'" >> "$outfile"
   [ -n "$reinstall" ] && echo "alias ${name}-reinstall='${reinstall}'" >> "$outfile"
 
@@ -999,12 +1003,13 @@ DOTFILES_HDR
     api_port_var="PROJECT_${i}_API_PORT";   api_port="${!api_port_var:-}"
     test_var="PROJECT_${i}_TEST";           test_cmd="${!test_var:-}"
     e2e_var="PROJECT_${i}_E2E";             e2e="${!e2e_var:-}"
+    storybook_var="PROJECT_${i}_STORYBOOK"; storybook="${!storybook_var:-}"
     reinstall_var="PROJECT_${i}_REINSTALL"; reinstall="${!reinstall_var:-}"
     install_var="PROJECT_${i}_INSTALL";     install_cmd="${!install_var:-}"
     wt_repo_var="PROJECT_${i}_WT_REPO";     wt_repo="${!wt_repo_var:-}"
 
     # Skip projects with no defined commands
-    if [ -z "$app$api$test_cmd$e2e$install_cmd$reinstall$wt_repo" ]; then
+    if [ -z "$app$api$test_cmd$e2e$storybook$install_cmd$reinstall$wt_repo" ]; then
       continue
     fi
     echo "Project: ${name}"
@@ -1027,6 +1032,7 @@ DOTFILES_HDR
     fi
     [ -n "$test_cmd" ]  && _fmt_line "${name}-test"      "0" "Run unit tests"
     [ -n "$e2e" ]       && _fmt_line "${name}-e2e"       "0" "Run e2e tests"
+    [ -n "$storybook" ] && _fmt_line "${name}-storybook" "0" "Run Storybook"
     [ -n "$install_cmd" ] && _fmt_line "${name}-install" "0" "Install dependencies"
     [ -n "$reinstall" ] && _fmt_line "${name}-reinstall" "0" "Reinstall dependencies"
     if [ -n "$wt_repo" ]; then

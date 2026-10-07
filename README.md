@@ -120,20 +120,21 @@ PROJECT_1_API="nx serve api"
 PROJECT_1_API_PORT=8081
 PROJECT_1_TEST="yarn test"
 PROJECT_1_E2E="yarn e2e"
+PROJECT_1_STORYBOOK="yarn storybook"
 PROJECT_1_INSTALL="yarn"
 PROJECT_1_REINSTALL="rm -rf node_modules && yarn"
 ```
 
-This generates aliases: `myapp-app`, `myapp-api`, `myapp-stop`, `myapp-test`, `myapp-e2e`, `myapp-install`, `myapp-reinstall`.
+This generates aliases: `myapp-app`, `myapp-api`, `myapp-stop`, `myapp-test`, `myapp-e2e`, `myapp-storybook`, `myapp-install`, `myapp-reinstall`.
 
 When `APP_PORT` or `API_PORT` is set:
 - Running `myapp-app` / `myapp-api` will automatically kill any process already listening on that port before starting the server. This lets you switch between worktrees without manually finding and stopping the old instance — just run the command and it takes over.
 - On Ctrl-C, the full process tree is cleaned up (including child processes that escape the terminal's process group, e.g. nx executor workers).
 - `myapp-stop` kills all app and API server processes on the configured ports.
 
-When `PROJECT_1_PRETEST="<command>"` is set, it runs before `myapp-app`, `myapp-api`, `myapp-test`, `myapp-install`, `myapp-reinstall`, and before `WT_INSTALL` in `myapp-wt-new`; a non-zero exit aborts the command (e.g. a malware scan, since installs run the branch's lifecycle scripts).
+When `PROJECT_1_PRETEST="<command>"` is set, it runs before `myapp-app`, `myapp-api`, `myapp-test`, `myapp-storybook`, `myapp-install`, `myapp-reinstall`, and before `WT_INSTALL` in `myapp-wt-new`; a non-zero exit aborts the command (e.g. a malware scan, since installs run the branch's lifecycle scripts).
 
-When `PROJECT_1_ENV="KEY=val OTHER=val2"` is set, those variables are injected (via `env`) into `myapp-app`, `myapp-api`, `myapp-test` and `myapp-e2e` only — they are not exported to the whole shell. Use it for project-scoped settings such as `NX_SELF_HOSTED_REMOTE_CACHE_SERVER`. Values must not contain spaces.
+When `PROJECT_1_ENV="KEY=val OTHER=val2"` is set, those variables are injected (via `env`) into `myapp-app`, `myapp-api`, `myapp-test`, `myapp-e2e` and `myapp-storybook` only — they are not exported to the whole shell. Use it for project-scoped settings such as `NX_SELF_HOSTED_REMOTE_CACHE_SERVER`. Values must not contain spaces.
 
 ### Worktree management
 
