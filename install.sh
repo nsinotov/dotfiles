@@ -461,6 +461,7 @@ for i in $(seq 1 99); do
   test_var="PROJECT_${i}_TEST";           test_cmd="${!test_var:-}"
   e2e_var="PROJECT_${i}_E2E";             e2e="${!e2e_var:-}"
   reinstall_var="PROJECT_${i}_REINSTALL"; reinstall="${!reinstall_var:-}"
+  install_var="PROJECT_${i}_INSTALL";     install_cmd="${!install_var:-}"
   pretest_var="PROJECT_${i}_PRETEST";     pretest="${!pretest_var:-}"
   proj_env_var="PROJECT_${i}_ENV";        proj_env="${!proj_env_var:-}"
   wt_repo_var="PROJECT_${i}_WT_REPO";     wt_repo="${!wt_repo_var:-}"
@@ -494,6 +495,9 @@ PROJEOF
     [ -n "$app_cmd" ]       && app_cmd="${pretest} && ${app_cmd}"
     [ -n "$api_cmd" ]       && api_cmd="${pretest} && ${api_cmd}"
     [ -n "$test_run_cmd" ]  && test_run_cmd="${pretest} && ${test_run_cmd}"
+    # Dependency installs run lifecycle scripts (e.g. postinstall) from the branch
+    [ -n "$install_cmd" ]   && install_cmd="${pretest} && ${install_cmd}"
+    [ -n "$reinstall" ]     && reinstall="${pretest} && ${reinstall}"
   fi
 
   # When pretest is combined with a port, app_cmd/api_cmd contain "&&".
@@ -541,6 +545,7 @@ STOPEOF
 
   [ -n "$test_run_cmd" ]  && echo "alias ${name}-test='${test_run_cmd}'" >> "$outfile"
   [ -n "$e2e" ]       && echo "alias ${name}-e2e='${e2e}'"           >> "$outfile"
+  [ -n "$install_cmd" ] && echo "alias ${name}-install='${install_cmd}'" >> "$outfile"
   [ -n "$reinstall" ] && echo "alias ${name}-reinstall='${reinstall}'" >> "$outfile"
 
   if [ -n "$wt_repo" ]; then
@@ -614,6 +619,17 @@ WTEOF
   fi
 ENVEOF
       done
+    fi
+
+    # Run the pretest hook inside the new worktree before installing deps,
+    # so the branch's install scripts never run if the hook fails.
+    if [ -n "$wt_install" ] && [ -n "$pretest" ]; then
+      cat >> "$outfile" <<PRETESTEOF
+  if ! (cd "\$wt_path" && ${pretest}); then
+    _wt_log_red "Pretest failed — skipped dependency install" "worktree: \$wt_path"
+    return 1
+  fi
+PRETESTEOF
     fi
 
     if [ -n "$wt_install" ]; then
@@ -984,10 +1000,11 @@ DOTFILES_HDR
     test_var="PROJECT_${i}_TEST";           test_cmd="${!test_var:-}"
     e2e_var="PROJECT_${i}_E2E";             e2e="${!e2e_var:-}"
     reinstall_var="PROJECT_${i}_REINSTALL"; reinstall="${!reinstall_var:-}"
+    install_var="PROJECT_${i}_INSTALL";     install_cmd="${!install_var:-}"
     wt_repo_var="PROJECT_${i}_WT_REPO";     wt_repo="${!wt_repo_var:-}"
 
     # Skip projects with no defined commands
-    if [ -z "$app$api$test_cmd$e2e$reinstall$wt_repo" ]; then
+    if [ -z "$app$api$test_cmd$e2e$install_cmd$reinstall$wt_repo" ]; then
       continue
     fi
     echo "Project: ${name}"
@@ -1010,6 +1027,7 @@ DOTFILES_HDR
     fi
     [ -n "$test_cmd" ]  && _fmt_line "${name}-test"      "0" "Run unit tests"
     [ -n "$e2e" ]       && _fmt_line "${name}-e2e"       "0" "Run e2e tests"
+    [ -n "$install_cmd" ] && _fmt_line "${name}-install" "0" "Install dependencies"
     [ -n "$reinstall" ] && _fmt_line "${name}-reinstall" "0" "Reinstall dependencies"
     if [ -n "$wt_repo" ]; then
       _fmt_line "${name}-wt-new"  "1" "Create a git worktree for a branch"
