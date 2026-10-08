@@ -253,7 +253,7 @@ Each account has its own `settings.json`, so enable it per account by adding thi
 
 ## Backups
 
-`install.sh` automatically snapshots all non-tracked config files before making any changes:
+`install.sh` automatically snapshots all non-tracked config files before making any changes, keeping only the 5 newest snapshots:
 
 ```
 ~/.config/dotfiles/backups/<timestamp>/

@@ -166,7 +166,12 @@ if [ "$TEST_MODE" = false ]; then
 
   echo ""
   printf "  \033[1;32m%-50s\033[0m %s\n" "Backup saved to" "~/.config/dotfiles/backups/$_BACKUP_TS"
-  unset _BACKUP_TS _BACKUP_DIR _SECRETS_BASE _CLAUDE_DESKTOP
+
+  # Keep only the newest backups; timestamped names sort chronologically
+  _BACKUP_KEEP=5
+  ls -1d "$(dirname "$_BACKUP_DIR")"/[0-9]* 2>/dev/null | sort -r | tail -n +$((_BACKUP_KEEP + 1)) |
+    while IFS= read -r _old; do rm -rf "$_old"; done
+  unset _BACKUP_TS _BACKUP_DIR _BACKUP_KEEP _SECRETS_BASE _CLAUDE_DESKTOP
   unset -f _backup_file _backup_dir
 fi
 
