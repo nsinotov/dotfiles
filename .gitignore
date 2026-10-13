@@ -1,0 +1,20 @@
+# Secrets — never commit
+.secrets
+*.secret
+*.key
+*.pem
+
+# macOS
+.DS_Store
+
+# Editor swap files
+*.swp
+*.swo
+*~
+
+# Test mode output
+build/
+
+# Personal Claude Code files (shared instructions live in CLAUDE.md)
+.claude/settings.local.json
+CLAUDE.local.md

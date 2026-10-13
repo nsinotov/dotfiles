@@ -1,0 +1,132 @@
+# ===========================================
+# AeroSpace — Tiling Window Manager for macOS
+# ===========================================
+# Docs: https://nikitabobko.github.io/AeroSpace/guide
+
+# ------------------------------------
+# General
+# ------------------------------------
+
+start-at-login = true
+
+# Launch JankyBorders for focused-window highlighting (Catppuccin Mocha)
+after-startup-command = [
+  'exec-and-forget borders active_color=0xffb4befe inactive_color=0xff313244 width=5.0 style=round'
+]
+
+# Flatten nested containers for simpler layouts
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+# Mouse follows the focused window/monitor
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+on-focus-changed = ['move-mouse window-lazy-center']
+
+# ------------------------------------
+# Gaps
+# ------------------------------------
+
+[gaps]
+inner.horizontal = 5
+inner.vertical = 5
+outer.left = 0
+outer.right = 0
+outer.top = 0
+outer.bottom = 0
+
+# ------------------------------------
+# Main Mode — Keybindings
+# ------------------------------------
+# Alt (Option) for all bindings
+# Shift adds "move" semantics to any action
+
+[mode.main.binding]
+
+# ---- Workspace switching (Alt + number) ----
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
+alt-0 = 'workspace 0'
+
+# ---- Focus windows (Alt+Ctrl + vim keys) ----
+alt-ctrl-h = 'focus left'
+alt-ctrl-j = 'focus down'
+alt-ctrl-k = 'focus up'
+alt-ctrl-l = 'focus right'
+
+# ---- Move windows (Alt+Shift + vim keys) ----
+alt-shift-h = 'move left'
+alt-shift-j = 'move down'
+alt-shift-k = 'move up'
+alt-shift-l = 'move right'
+
+# ---- Move window to workspace (Alt+Shift + number) ----
+alt-shift-1 = 'move-node-to-workspace 1'
+alt-shift-2 = 'move-node-to-workspace 2'
+alt-shift-3 = 'move-node-to-workspace 3'
+alt-shift-4 = 'move-node-to-workspace 4'
+alt-shift-5 = 'move-node-to-workspace 5'
+alt-shift-6 = 'move-node-to-workspace 6'
+alt-shift-7 = 'move-node-to-workspace 7'
+alt-shift-8 = 'move-node-to-workspace 8'
+alt-shift-9 = 'move-node-to-workspace 9'
+alt-shift-0 = 'move-node-to-workspace 0'
+
+# ---- Layout controls ----
+alt-ctrl-slash = 'layout tiles horizontal vertical'
+alt-ctrl-comma = 'layout accordion horizontal vertical'
+alt-f = 'fullscreen'
+alt-shift-f = 'layout floating tiling'
+
+# ---- Quick actions ----
+alt-tab = 'workspace-back-and-forth'
+alt-shift-c = 'reload-config'
+
+# ---- Resize (quick) ----
+alt-shift-minus = 'resize smart -50'
+alt-shift-equal = 'resize smart +50'
+
+# ---- Resize mode ----
+alt-r = 'mode resize'
+
+# ------------------------------------
+# Resize Mode
+# ------------------------------------
+
+[mode.resize.binding]
+h = 'resize width -50'
+j = 'resize height +50'
+k = 'resize height -50'
+l = 'resize width +50'
+enter = 'mode main'
+esc = 'mode main'
+
+# ------------------------------------
+# Float Rules
+# ------------------------------------
+
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.systempreferences'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.ActivityMonitor'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.calculator'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.archiveutility'
+run = 'layout floating'

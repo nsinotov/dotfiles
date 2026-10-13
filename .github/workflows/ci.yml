@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    name: ShellCheck (bash scripts)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # -x follows the sourced lib/ files; shell/ is sourced by zsh, which
+      # ShellCheck cannot parse
+      - name: Lint
+        run: |
+          shellcheck -x -S warning install.sh check.sh uninstall.sh \
+            tools/vpn tools/claude-statusline.sh test/run.sh test/macos-dry-run.sh
+
+  fresh-install:
+    name: Fresh install (Ubuntu in Docker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build test image
+        run: docker build -f test/Dockerfile -t dotfiles-test .
+
+      - name: Run fresh-install test
+        run: docker run --rm dotfiles-test
+
+  macos:
+    name: macOS dry run (bash 3.2, all modules)
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run macOS checks
+        run: test/macos-dry-run.sh

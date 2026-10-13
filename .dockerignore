@@ -1,0 +1,7 @@
+# Keep the test image to tracked repo content only
+.git
+build/
+.history/
+.cursor/
+.claude/
+REVIEW-TODO.md
