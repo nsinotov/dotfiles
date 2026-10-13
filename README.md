@@ -263,7 +263,18 @@ The status line shows the model, account and branch on the left. On the right, p
 cd ~/.dotfiles && git pull && ./install.sh && exec zsh
 ```
 
-Configs are symlinked, so pulled changes apply at once. Re-running `install.sh` installs the packages of new modules and regenerates project and Claude commands. In Neovim, `:Lazy restore` syncs plugins to the committed `lazy-lock.json`; in tmux, `prefix U` updates plugins.
+Configs are symlinked, so pulled changes apply at once. Re-running `install.sh` installs the packages of new modules and regenerates project and Claude commands. In tmux, `prefix U` updates plugins.
+
+**Neovim plugins** are pinned in [`editor/nvim/lazy-lock.json`](editor/nvim/lazy-lock.json):
+
+| Task | How |
+| --- | --- |
+| Installed LazyVim version | `:lua print(LazyVim.config.version)` |
+| Latest LazyVim release | [github.com/LazyVim/LazyVim/releases](https://github.com/LazyVim/LazyVim/releases) |
+| When plugins were last updated | `git log -1 --format=%cs editor/nvim/lazy-lock.json` |
+| Check for plugin updates | `:Lazy check` |
+| Update, then pin the new versions | `:Lazy update`, then commit `lazy-lock.json` |
+| Match the pinned versions (after `git pull`) | `:Lazy restore` |
 
 ## Fork and Customize
 
