@@ -264,8 +264,10 @@ if [ "$(uname -s)" = "Darwin" ] && module_enabled keyboard-ua-ru; then
   fi
   unset KBD_BUNDLE_DST KBD_BUNDLE_SRC
 
-  if defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null \
-      | grep -q "ua_ru_layout"; then
+  # Custom layouts may appear only in the selected list, not the enabled one
+  if { defaults read com.apple.HIToolbox AppleEnabledInputSources
+       defaults read com.apple.HIToolbox AppleSelectedInputSources; } 2>/dev/null \
+      | grep -q "KeyboardLayout Name\" = \"UA-RU-layout"; then
     success "OK: UA-RU-layout (enabled in input sources)"
   else
     warn "NOT ENABLED: UA-RU-layout is installed but not active"
