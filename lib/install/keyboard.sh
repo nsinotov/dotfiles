@@ -37,7 +37,7 @@ if [ "$OS" = "Darwin" ] && module_enabled keyboard-ua-ru; then
   if [ "$_kbd_first_install" = true ] && [ "$TEST_MODE" = false ]; then
     echo ""
     info "  Action required" "Log out and back in, then:"
-    info "  System Settings → Keyboard → Input Sources → +" "enable 'UA-RU-layout'"
+    info "  System Settings > Keyboard > Input Sources > +" "enable 'UA-RU-layout'"
   fi
   unset _kbd_first_install KBD_BUNDLE_SRC
 fi

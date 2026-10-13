@@ -54,6 +54,8 @@ $EDITOR ~/.config/dotfiles/config.sh
 exec zsh
 ```
 
+![install.sh --dry-run with a demo config](docs/screenshots/install.png)
+
 Files that `install.sh` replaces are backed up next to the original as `<file>.bak.<timestamp>`. Move personal git settings from the old `~/.gitconfig` into `~/.gitconfig.local`; it is included last, so it wins.
 
 **Requirements:** macOS with Xcode Command Line Tools and Homebrew (`install.sh` offers both), or Linux with apt. git is the only prerequisite. Tools without an apt package (starship, sesh, lazygit, Ghostty, Claude Code) are listed by `install.sh` for manual installation.

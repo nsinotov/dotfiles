@@ -147,7 +147,7 @@ else
 # example: claude
 claude() { claude-${default_account} "\$@"; }
 CLDEFAULT
-    success "Default: claude → claude-${default_account}" ""
+    success "Default account: claude-${default_account}" ""
   else
     fail "CLAUDE_DEFAULT_ACCOUNT=$default_account" "no account with that name"
   fi
