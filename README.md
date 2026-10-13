@@ -209,6 +209,26 @@ Anything machine-, company- or project-specific belongs in a local extension dir
 
 Settings can call local code. For example, `CLAUDE_ACCOUNT_<N>_PRE_CMD="proxy_start"` runs a local function before that Claude account starts. [`shell/templates/local.sh.tpl`](shell/templates/local.sh.tpl) has annotated examples.
 
+### Private companion repo (optional)
+
+To rebuild a whole laptop, keep your personal layer in a separate private repo that builds on this one. This repo never depends on it, and works the same without it.
+
+```
+dotfiles-private/              (your private repo)
+  config.sh                    settings, symlinked to ~/.config/dotfiles/config.sh
+  starship.local.toml          per-machine additions, symlinked into ~/.config/dotfiles/
+  local/                       a local extensions dir: *.sh, bin/, nvim/
+  setup.sh                     one-time laptop setup: apps, macOS defaults, links above
+  README.md                    the restore steps below, for your own machine
+```
+
+1. Clone both repos.
+2. Run the private `setup.sh`: it links `config.sh` and the `*.local.toml` files, and installs your apps.
+3. Add your tokens to `~/.config/dotfiles/.secrets` by hand, or have `setup.sh` fetch them from a password manager. Never commit them.
+4. Run `./install.sh` here. `config.sh` sets `DOTFILES_LOCAL_DIRS` to the private `local/` dir.
+
+Name the private script `setup.sh` rather than `install.sh`: an executable `install.sh` in a local extensions dir runs on every `install.sh` run here, which suits re-linking but not a one-time setup.
+
 ## Claude Code
 
 The `claude` module generates one isolated `claude-<name>` command per account, and plain `claude` runs `CLAUDE_DEFAULT_ACCOUNT`:
