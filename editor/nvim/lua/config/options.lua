@@ -51,6 +51,10 @@ end
 --     command mode, but keys typed inside the command line are raw — see the
 --     CmdlineEnter autocmd in autocmds.lua for the safety-net IM switch.
 
+-- ---- Formatting ----
+-- Run Prettier only in projects that have a Prettier config (no default-style rewrites)
+vim.g.lazyvim_prettier_needs_config = true
+
 -- ---- Neovide (GUI frontend) ----
 if vim.g.neovide then
   vim.o.guifont = "MonaspiceNe Nerd Font Mono:h14:#e-calt:#e-liga:#e-dlig:#e-ss01:#e-ss02:#e-ss03:#e-ss04:#e-ss05:#e-ss06:#e-ss07:#e-ss08:#e-ss09:#e-ss10"
