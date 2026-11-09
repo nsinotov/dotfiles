@@ -26,3 +26,43 @@ keybind = shift+alt+ь=text:Ъ
 keybind = shift+alt+б=text:<
 keybind = shift+alt+ю=text:>
 keybind = shift+alt+є=text:Э
+
+# ------------------------------------
+# Ctrl+Cyrillic → Latin control codes
+# ------------------------------------
+# Ghostty 1.4 encodes Ctrl+Cyrillic as CSI 27;5;<codepoint>~ (e.g. Ctrl+с
+# arrives as ";5;1089~"), which tmux, the shell and Neovim don't understand.
+# Send the control code of the Latin key at the same position instead.
+# Top row: q w e r t y u i o p [ ]
+keybind = ctrl+й=text:\x11
+keybind = ctrl+ц=text:\x17
+keybind = ctrl+у=text:\x05
+keybind = ctrl+к=text:\x12
+keybind = ctrl+е=text:\x14
+keybind = ctrl+н=text:\x19
+keybind = ctrl+г=text:\x15
+keybind = ctrl+ш=text:\x09
+keybind = ctrl+щ=text:\x0f
+keybind = ctrl+з=text:\x10
+keybind = ctrl+х=text:\x1b
+keybind = ctrl+ї=text:\x1d
+keybind = ctrl+ъ=text:\x1d
+# Home row: a s d f g h j k l (і = Ukrainian, ы = Russian at S)
+keybind = ctrl+ф=text:\x01
+keybind = ctrl+і=text:\x13
+keybind = ctrl+ы=text:\x13
+keybind = ctrl+в=text:\x04
+keybind = ctrl+а=text:\x06
+keybind = ctrl+п=text:\x07
+keybind = ctrl+р=text:\x08
+keybind = ctrl+о=text:\x0a
+keybind = ctrl+л=text:\x0b
+keybind = ctrl+д=text:\x0c
+# Bottom row: z x c v b n m
+keybind = ctrl+я=text:\x1a
+keybind = ctrl+ч=text:\x18
+keybind = ctrl+с=text:\x03
+keybind = ctrl+м=text:\x16
+keybind = ctrl+и=text:\x02
+keybind = ctrl+т=text:\x0e
+keybind = ctrl+ь=text:\x0d
