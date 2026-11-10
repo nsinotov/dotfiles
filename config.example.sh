@@ -22,6 +22,8 @@ GIT_USER_EMAIL="your@email.com"
 #   cli        fzf, ripgrep, fd, jq, gh
 #   tmux       tmux config, TPM and plugins
 #   nvim       Neovim (LazyVim) config, ripgrep, fd, lazygit, C compiler
+#   mermaid    inline Mermaid diagrams in Neovim markdown (Pele-like look,
+#              Catppuccin colors), mermaid-cli, ImageMagick (needs nvim)
 #   starship   Starship prompt
 #   sesh       sesh session picker, zoxide, fzf (needs tmux)
 #   ghostty    Ghostty terminal + Monaspice Nerd Font
@@ -32,8 +34,8 @@ GIT_USER_EMAIL="your@email.com"
 #   keyboard-ua-ru  UA-RU layout (macOS) + Cyrillic bindings for the enabled
 #                   tmux / ghostty / nvim modules, macism
 # When a module or feature needs another module (claude → zsh, sesh → tmux,
-# projects → zsh), install.sh warns and asks before adding it. Removing a
-# module removes its links on the next run.
+# mermaid → nvim, projects → zsh), install.sh warns and asks before adding
+# it. Removing a module removes its links on the next run.
 
 DOTFILES_MODULES="zsh git cli tmux nvim starship sesh ghostty aerospace"
 

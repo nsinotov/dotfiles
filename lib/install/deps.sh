@@ -59,6 +59,8 @@ DEPS=(
   "nvim:fd|fdfind:fd:fd-find"
   "nvim:lazygit:lazygit:"
   "nvim:cc|gcc|clang::build-essential"
+  "mermaid:mmdc:mermaid-cli:"
+  "mermaid:magick|convert:imagemagick:imagemagick"
   "tmux:tmux:tmux:tmux"
   "starship:starship:starship:"
   "sesh:sesh:sesh:"
@@ -148,6 +150,25 @@ if [ ${#missing_deps[@]} -gt 0 ] && [ "$TEST_MODE" = false ]; then
         fail "No package manager found" "install $label manually"
       fi
     done
+  fi
+fi
+
+# ---- Headless Chrome for mermaid-cli ----
+# mmdc renders through puppeteer, and Homebrew's mermaid-cli skips puppeteer's
+# browser download. Its bundled puppeteer CLI fetches the exact build mmdc pins.
+if module_enabled mermaid && have mmdc; then
+  if mermaid_renders; then
+    success "chrome-headless-shell (for mmdc)" ""
+  elif [ "$TEST_MODE" = true ]; then
+    info "chrome-headless-shell (for mmdc)" "not found (skipped in test mode)"
+  else
+    pptr_cli="$(mermaid_puppeteer_cli)"
+    if [ -z "$pptr_cli" ] || ! have node; then
+      info "chrome-headless-shell (for mmdc)" "not found — run: npx puppeteer browsers install chrome-headless-shell"
+    elif confirm "Install chrome-headless-shell for mmdc?"; then
+      node "$pptr_cli" browsers install chrome-headless-shell > /dev/null &&
+        success "chrome-headless-shell (for mmdc)" "installed"
+    fi
   fi
 fi
 

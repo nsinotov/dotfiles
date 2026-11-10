@@ -11,7 +11,7 @@ CONFIG_FILE="$DOTFILES_CONFIG_HOME/config.sh"
 SECRETS_FILE="$DOTFILES_CONFIG_HOME/.secrets"
 
 # Every tool is a module; nothing is set up unless listed in DOTFILES_MODULES:
-#   zsh git cli tmux nvim starship sesh ghostty aerospace vpn claude keyboard-ua-ru
+#   zsh git cli tmux nvim mermaid starship sesh ghostty aerospace vpn media claude keyboard-ua-ru
 
 # load_config — source config.sh, then .secrets (both optional; later wins)
 load_config() {
@@ -56,9 +56,41 @@ missing_requirements() {
     module_enabled sesh && echo "tmux|sesh|the sesh picker is a tmux binding (prefix+t)"
     [ "$has_tmux_windows" = true ] && echo "tmux|projects|PROJECT_<N>_TMUX_WINDOWS creates tmux sessions"
   fi
+  if ! module_enabled nvim; then
+    module_enabled mermaid && echo "nvim|mermaid|diagrams are rendered inside Neovim"
+  fi
   if ! module_enabled git && [ "$has_git_emails" = true ]; then
     echo "git|projects|PROJECT_<N>_GIT_EMAIL is applied through the generated ~/.gitconfig"
   fi
+  return 0
+}
+
+# mermaid_renders — true when mmdc can render a diagram. It draws through puppeteer,
+# so this fails when its headless Chrome build is missing.
+mermaid_renders() {
+  local tmp status=1
+  tmp="$(mktemp -d)" || return 1
+  printf 'graph TD\n  A --> B\n' > "$tmp/test.mmd"
+  mmdc -q -i "$tmp/test.mmd" -o "$tmp/test.svg" > /dev/null 2>&1 && status=0
+  rm -rf "$tmp"
+  return "$status"
+}
+
+# mermaid_puppeteer_cli — path to the puppeteer CLI bundled with mermaid-cli (empty
+# if not found); it installs the exact chrome-headless-shell build mmdc expects
+mermaid_puppeteer_cli() {
+  local bin link cli
+  bin="$(command -v mmdc 2> /dev/null)" || return 0
+  # Resolve the symlink chain without readlink -f (missing on older macOS)
+  while [ -L "$bin" ]; do
+    link="$(readlink "$bin")"
+    case "$link" in
+      /*) bin="$link" ;;
+      *) bin="$(dirname "$bin")/$link" ;;
+    esac
+  done
+  cli="$(dirname "$bin")/../node_modules/puppeteer/lib/puppeteer/node/cli.js"
+  [ -f "$cli" ] && printf '%s' "$cli"
   return 0
 }
 

@@ -71,6 +71,7 @@ Files that `install.sh` replaces are backed up next to the original as `<file>.b
 | `cli` | Everyday command-line tools | fzf, ripgrep, fd, jq, gh |
 | `tmux` | `.tmux.conf`, TPM and plugins, F12 nested-session toggle | tmux |
 | `nvim` | Neovim (LazyVim) config | neovim, ripgrep, fd, lazygit, C compiler |
+| `mermaid` | Inline Mermaid diagrams in Neovim markdown, styled after [Pele](https://pele.run) in Catppuccin colors (Ghostty, also inside tmux) | mermaid-cli, ImageMagick, Chrome headless shell for mermaid-cli |
 | `starship` | Starship prompt | starship |
 | `sesh` | Session picker (`prefix t` in tmux) | sesh, zoxide, fzf |
 | `ghostty` | Ghostty config | Ghostty, Monaspice Nerd Font (casks) |
@@ -80,7 +81,7 @@ Files that `install.sh` replaces are backed up next to the original as `<file>.b
 | `claude` | Claude Code account functions and status line | Claude Code (cask), jq |
 | `keyboard-ua-ru` | UA-RU layout (macOS), plus Cyrillic bindings for the enabled tmux, Ghostty and nvim modules | macism (macOS) |
 
-Some modules and features depend on others: `claude`, projects and local `*.sh` extensions need `zsh`; `sesh` and `PROJECT_<N>_TMUX_WINDOWS` need `tmux`; `PROJECT_<N>_GIT_EMAIL` needs `git`. `install.sh` warns about each and asks whether to set it up for that run, and `check.sh` reports them.
+Some modules and features depend on others: `claude`, projects and local `*.sh` extensions need `zsh`; `sesh` and `PROJECT_<N>_TMUX_WINDOWS` need `tmux`; `mermaid` needs `nvim`; `PROJECT_<N>_GIT_EMAIL` needs `git`. `install.sh` warns about each and asks whether to set it up for that run, and `check.sh` reports them.
 
 ## Configuration
 
@@ -296,6 +297,8 @@ Configs are symlinked, so pulled changes apply at once. Re-running `install.sh` 
 | UA-RU layout missing from Input Sources | Log out and in, then add it under System Settings → Keyboard → Input Sources |
 | Claude status line not shown | Install `jq`, re-run `install.sh`, and restart Claude Code |
 | A package is "not in apt" | Install it manually; `install.sh` names each one |
+| Mermaid blocks show as code | Run `./check.sh`; mermaid-cli needs its headless Chrome (`install.sh` offers it). On Linux install mermaid-cli with `npm install -g @mermaid-js/mermaid-cli` |
+| A `mermaid.json` change has no effect | Diagrams are cached by source; delete `~/.cache/nvim/snacks/image/*chart*` and reopen the file |
 
 ## Uninstall
 

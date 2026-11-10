@@ -1,0 +1,39 @@
+{
+  "theme": "base",
+  "look": "classic",
+  "layout": "dagre",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#1e1e2e",
+    "fontFamily": "-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
+    "fontSize": "16px",
+    "primaryColor": "#313244",
+    "primaryTextColor": "#cdd6f4",
+    "primaryBorderColor": "#45475a",
+    "secondaryColor": "#313244",
+    "secondaryTextColor": "#cdd6f4",
+    "secondaryBorderColor": "#45475a",
+    "tertiaryColor": "#181825",
+    "tertiaryTextColor": "#cdd6f4",
+    "tertiaryBorderColor": "#45475a",
+    "lineColor": "#bac2de",
+    "textColor": "#cdd6f4",
+    "mainBkg": "#313244",
+    "nodeBorder": "#45475a",
+    "clusterBkg": "#181825",
+    "clusterBorder": "#45475a",
+    "titleColor": "#cdd6f4",
+    "edgeLabelBackground": "#1e1e2e",
+    "noteBkgColor": "#313244",
+    "noteTextColor": "#cdd6f4",
+    "noteBorderColor": "#45475a"
+  },
+  "flowchart": {
+    "curve": "bumpY",
+    "padding": 14,
+    "minNodeWidth": 0,
+    "nodeSpacing": 60,
+    "rankSpacing": 60
+  },
+  "themeCSS": ".node rect, .cluster rect { rx: 8px; ry: 8px; } .node rect, .node polygon, .node circle, .node path { stroke-width: 1.5px; } .flowchart-link { stroke-width: 1.5px; } .edgeLabel, .edgeLabel p, .edgeLabel rect { background-color: #1e1e2e; fill: #1e1e2e; }"
+}

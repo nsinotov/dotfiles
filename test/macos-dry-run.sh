@@ -27,7 +27,7 @@ mkdir -p "$CONF/dotfiles/local"
 cat > "$CONF/dotfiles/config.sh" <<'EOF'
 GIT_USER_NAME="CI Tester"
 GIT_USER_EMAIL="ci@example.com"
-DOTFILES_MODULES="zsh git cli tmux nvim starship sesh ghostty aerospace vpn media claude keyboard-ua-ru"
+DOTFILES_MODULES="zsh git cli tmux nvim mermaid starship sesh ghostty aerospace vpn media claude keyboard-ua-ru"
 PROJECT_1_NAME=acme
 PROJECT_1_APP="yarn start"
 PROJECT_1_APP_PORT=3000
@@ -55,6 +55,7 @@ for f in \
 done
 grep -q 'com.example.app' "$BUILD/.aerospace.toml" || die "aerospace.local.toml not appended"
 grep -q '"lang.prisma"' "$BUILD/.local/state/dotfiles/settings.lua" || die "NVIM_EXTRAS missing from settings.lua"
+grep -q '"mermaid"' "$BUILD/.local/state/dotfiles/settings.lua" || die "mermaid module missing from settings.lua"
 pass "all module outputs present"
 
 step "Keyboard bundle and shell syntax"

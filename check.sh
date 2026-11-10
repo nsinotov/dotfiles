@@ -238,6 +238,29 @@ if module_enabled claude; then
 fi
 
 # ------------------------------------
+# Check Mermaid rendering (module: mermaid)
+# ------------------------------------
+
+if module_enabled mermaid; then
+  echo ""
+  info "=== Mermaid diagrams ==="
+  echo ""
+
+  if command -v magick > /dev/null 2>&1 || command -v convert > /dev/null 2>&1; then
+    success "OK: ImageMagick"
+  else
+    warn "MISSING: ImageMagick (run install.sh)"
+  fi
+  if ! command -v mmdc > /dev/null 2>&1; then
+    warn "MISSING: mmdc (run install.sh)"
+  elif mermaid_renders; then
+    success "OK: mmdc renders diagrams"
+  else
+    warn "BROKEN: mmdc cannot render, its headless Chrome is likely missing (run install.sh)"
+  fi
+fi
+
+# ------------------------------------
 # Check keyboard layout (module: keyboard-ua-ru, macOS only)
 # ------------------------------------
 

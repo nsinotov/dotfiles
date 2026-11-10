@@ -47,7 +47,7 @@ sed -i \
   -e 's/^GIT_USER_NAME=.*/GIT_USER_NAME="CI Tester"/' \
   -e 's/^GIT_USER_EMAIL=.*/GIT_USER_EMAIL="ci@example.com"/' \
   "$CONFIG"
-set_modules "zsh git cli tmux nvim starship sesh ghostty vpn claude"
+set_modules "zsh git cli tmux nvim mermaid starship sesh ghostty vpn claude"
 mkdir -p "$HOME/ci-path"
 cat >> "$CONFIG" <<'EOF'
 CI_PUBLIC_VAR=exported
@@ -123,6 +123,19 @@ nvim_kbd="$(nvim --headless -u NONE --cmd "set rtp+=$HOME/.config/nvim" \
   -c 'lua io.write(tostring(require("lib.dotfiles").module("keyboard-ua-ru")))' -c 'qa!' 2>&1)"
 [ "$nvim_kbd" = false ] || die "nvim sees keyboard-ua-ru as enabled ($nvim_kbd)"
 pass "no Cyrillic includes, nvim flag off"
+
+# mermaid_specs — number of lazy specs the nvim mermaid plugin file returns (0 when off)
+mermaid_specs() {
+  nvim --headless -u NONE --cmd "set rtp+=$HOME/.config/nvim" \
+    -c 'lua io.write(#dofile(vim.env.HOME .. "/.config/nvim/lua/plugins/mermaid.lua"))' -c 'qa!' 2>&1
+}
+
+step "Mermaid diagrams are on with the mermaid module"
+grep -q '"mermaid"' "$SETTINGS" || die "settings.lua does not list mermaid"
+[ "$(mermaid_specs)" -gt 0 ] || die "nvim mermaid specs are empty with the module enabled"
+[ -f "$HOME/.config/nvim/mermaid.json" ] || die "mermaid.json not reachable through the nvim config"
+jq empty "$HOME/.config/nvim/mermaid.json" || die "mermaid.json is not valid JSON"
+pass "settings.lua lists mermaid, nvim loads its specs, mermaid.json valid"
 
 step "Local additions, nvim settings and local nvim code"
 starship_cfg="$HOME/.config/starship.toml"
@@ -255,17 +268,20 @@ for path in .tmux.conf .config/ghostty/config .config/tmux/keyboard-ua-ru.conf .
   .config/sesh/sesh.toml .config/tmux/nested-toggle.conf; do
   [ ! -e "$HOME/$path" ] || die "~/$path still linked after disabling its module"
 done
-pass "tmux, sesh, ghostty, Cyrillic and nested-toggle links removed"
+[ "$(mermaid_specs)" = 0 ] || die "nvim mermaid specs still load after disabling the module"
+pass "tmux, sesh, ghostty, Cyrillic and nested-toggle links removed, mermaid specs off"
 
 step "Missing requirements are reported and added on approval"
-set_modules "git nvim claude"
+set_modules "git claude mermaid"
 req_out="$("$REPO/install.sh" --yes 2>&1)"
 grep -q "claude needs module 'zsh'" <<< "$req_out" || die "no warning that claude needs zsh"
+grep -q "mermaid needs module 'nvim'" <<< "$req_out" || die "no warning that mermaid needs nvim"
 grep -q "local extensions needs module 'zsh'" <<< "$req_out" || die "no warning that local extensions need zsh"
 [ "$(readlink "$HOME/.zshrc")" = "$REPO/shell/.zshrc" ] || die "zsh was not kept after approval"
 req_check="$("$REPO/check.sh" 2>&1)"
 grep -q "REQUIRES: claude needs module 'zsh'" <<< "$req_check" || die "check.sh does not report the unmet requirement"
-pass "warned, zsh added for the run, check.sh reports it"
+grep -q "REQUIRES: mermaid needs module 'nvim'" <<< "$req_check" || die "check.sh does not report mermaid → nvim"
+pass "warned, zsh and nvim added for the run, check.sh reports both"
 
 step "Nothing is installed without modules"
 set_modules ""
