@@ -146,6 +146,10 @@ All settings live in `~/.config/dotfiles/` (untracked):
 
 ![Neovim with the file explorer and a shell script](docs/screenshots/nvim.png)
 
+With the `mermaid` module, Mermaid blocks in markdown render inline under their source, styled after [Pele](https://pele.run):
+
+<img src="docs/screenshots/mermaid.png" width="380" alt="Mermaid flowchart rendered inline under its source in Neovim">
+
 **Ghostty** — Left Option sends Alt (right Option still types special characters); `cmd-ctrl-f` toggles fullscreen.
 
 ## Commands
