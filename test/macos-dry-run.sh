@@ -65,6 +65,35 @@ for f in "$REPO"/shell/.zshrc "$REPO"/shell/aliases/*.sh "$BUILD"/.aliases.d/*.s
 done
 pass "Info.plist valid, zsh files parse"
 
+step "vpn down cleans up with route and scutil on macOS"
+vpn_stub="$(mktemp -d)"
+export VPN_STUB_LOG="$vpn_stub/calls.log"
+: > "$VPN_STUB_LOG"
+# Network tools only record their call; sudo records the command it wraps and
+# really runs only the harmless ones, so the test never changes the network
+for cmd in ip resolvectl route ifconfig scutil openvpn dscacheutil killall; do
+  printf '#!/bin/sh\necho "%s $*" >> "$VPN_STUB_LOG"\n' "$cmd" > "$vpn_stub/$cmd"
+done
+printf '#!/bin/sh\necho "$*" >> "$VPN_STUB_LOG"\ncase "$1" in kill | rm | chown) exec "$@" ;; esac\n' > "$vpn_stub/sudo"
+chmod +x "$vpn_stub"/*
+touch "$vpn_stub/test.ovpn"
+mkdir -p "$vpn_stub/state/vpn"
+sleep 300 &
+vpn_fake_pid=$!
+echo "$vpn_fake_pid" > "$vpn_stub/state/vpn/openvpn.pid"
+vpn_out="$(PATH="$vpn_stub:$PATH" XDG_STATE_HOME="$vpn_stub/state" VPN_CONFIG_PATH="$vpn_stub/test.ovpn" \
+  /bin/bash "$REPO/tools/vpn" down 2>&1)"
+[[ "$vpn_out" == *"VPN stopped"* ]] || die "vpn down did not report a stop: $vpn_out"
+kill -0 "$vpn_fake_pid" 2>/dev/null && die "vpn down left the openvpn process running"
+grep -q '^route -n delete -net 0.0.0.0/1$' "$VPN_STUB_LOG" || die "vpn down did not remove the override routes"
+grep -q '^scutil$' "$VPN_STUB_LOG" || die "vpn down did not reset DNS with scutil"
+grep -q '^dscacheutil -flushcache$' "$VPN_STUB_LOG" || die "vpn down did not flush the DNS cache"
+if grep -Eq '^(ip|resolvectl) ' "$VPN_STUB_LOG"; then
+  die "vpn down called Linux-only tools on macOS"
+fi
+rm -rf "$vpn_stub"
+pass "process stopped, routes and DNS reset the macOS way"
+
 step "dotfiles command"
 listing="$(env -i HOME="$BUILD" PATH="$PATH" zsh -fc "
   DOTFILES_DIR='$REPO'; DOTFILES_MODULES='media tmux'

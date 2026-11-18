@@ -2,7 +2,8 @@
 # ===========================================
 # VPN — OpenVPN connection manager
 # ===========================================
-# Requires: openvpn (brew install openvpn)
+# Requires: openvpn (macOS: brew install openvpn; Linux: apt install openvpn)
+# On Linux, DNS needs systemd-resolved and routes are handled with ip(8).
 #
 # Doc markers for the `dotfiles` command:
 # section: Scripts
@@ -80,7 +81,7 @@ elif command -v openvpn > /dev/null 2>&1; then
 elif [ -x "/opt/homebrew/opt/openvpn/sbin/openvpn" ]; then
   OPENVPN="/opt/homebrew/opt/openvpn/sbin/openvpn"
 else
-  echo "Error: openvpn not found. Install with: brew install openvpn"
+  echo "Error: openvpn not found. Install with: brew install openvpn (macOS) or apt install openvpn (Linux)"
   exit 1
 fi
 
@@ -97,6 +98,8 @@ fi
 # ------------------------------------
 # Colors
 # ------------------------------------
+
+OS="$(uname -s)"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -130,8 +133,24 @@ kill_cli_openvpn() {
   if [ -n "$pid" ]; then
     sudo kill "$pid" 2>/dev/null || true
     sleep 1
+    # Linux: openvpn removes its routes and DNS on exit, so wait until it is gone
+    if [ "$OS" != "Darwin" ]; then
+      for _ in 1 2 3 4 5 6 7 8; do
+        sudo kill -0 "$pid" 2>/dev/null || break
+        sleep 1
+      done
+    fi
   fi
   sudo rm -f "$PID_FILE"
+}
+
+# True when a public name resolves (host(1) is not installed on a minimal Linux)
+dns_works() {
+  if [ "$OS" = "Darwin" ]; then
+    host -W 3 google.com > /dev/null 2>&1
+  else
+    getent hosts google.com > /dev/null 2>&1
+  fi
 }
 
 start_openvpn() {
@@ -167,6 +186,20 @@ wait_connected() {
 cleanup_vpn_state() {
   kill_cli_openvpn
 
+  if [ "$OS" != "Darwin" ]; then
+    # Linux: the routes and the per-link DNS go away with the tun device; only
+    # leftovers of a crashed openvpn need removing
+    local iface
+    sudo ip route del 0.0.0.0/1 > /dev/null 2>&1 || true
+    sudo ip route del 128.0.0.0/1 > /dev/null 2>&1 || true
+    for iface in $(ip -o link show 2>/dev/null | awk -F': ' '{print $2}' | grep -E '^tun[0-9]+$'); do
+      sudo resolvectl revert "$iface" > /dev/null 2>&1 || true
+      sudo ip link delete "$iface" > /dev/null 2>&1 || true
+    done
+    sudo resolvectl flush-caches > /dev/null 2>&1 || true
+    return 0
+  fi
+
   # Remove VPN override routes (/1 routes that OpenVPN uses to hijack traffic)
   sudo route -n delete -net 0.0.0.0/1 > /dev/null 2>&1 || true
   sudo route -n delete -net 128.0.0.0/1 > /dev/null 2>&1 || true
@@ -177,19 +210,51 @@ cleanup_vpn_state() {
     sudo route -n delete -ifscope "$iface" default > /dev/null 2>&1 || true
   done
 
-  # Reset DNS to network-provided settings
-  if [ "$(uname -s)" = "Darwin" ]; then
-    # Remove any DNS overrides CLI openvpn pushed via scutil
-    sudo scutil <<-EOF > /dev/null 2>&1 || true
+  # Reset DNS to network-provided settings:
+  # remove any DNS overrides CLI openvpn pushed via scutil
+  sudo scutil <<-EOF > /dev/null 2>&1 || true
 d.init
 d.add ServerAddresses * 0.0.0.0
 set State:/Network/Service/openvpn/DNS
 remove State:/Network/Service/openvpn/DNS
 EOF
-    sudo dscacheutil -flushcache
-    sudo killall -HUP mDNSResponder 2>/dev/null || true
+  sudo dscacheutil -flushcache
+  sudo killall -HUP mDNSResponder 2>/dev/null || true
+}
+
+# Linux half of "vpn fix": the system network service re-reads the DHCP lease
+vpn_fix_linux() {
+  local iface
+  iface=$(ip route show default 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "dev") {print $(i + 1); exit}}')
+
+  if ! ping -c 1 -W 3 8.8.8.8 > /dev/null 2>&1; then
+    echo -e "${YELLOW}Restarting the network service...${NC}"
+    if systemctl is-active --quiet NetworkManager 2>/dev/null; then
+      sudo systemctl restart NetworkManager
+    elif [ -n "$iface" ]; then
+      sudo networkctl reconfigure "$iface" 2>/dev/null || sudo systemctl restart systemd-networkd
+    else
+      sudo systemctl restart systemd-networkd
+    fi
+    sleep 5
+  fi
+  if ping -c 1 -W 3 8.8.8.8 > /dev/null 2>&1; then
+    echo -e "${GREEN}Internet connection restored${NC}"
   else
-    sudo systemd-resolve --flush-caches 2>/dev/null || true
+    echo -e "${RED}Still no internet. Check: ip route; networkctl status${NC}"
+  fi
+
+  if dns_works; then
+    echo -e "  DNS: ${GREEN}working${NC}"
+  else
+    echo -e "  DNS: ${YELLOW}not resolving — restarting systemd-resolved${NC}"
+    sudo systemctl restart systemd-resolved 2>/dev/null || true
+    sleep 1
+    if dns_works; then
+      echo -e "  DNS: ${GREEN}fixed${NC}"
+    else
+      echo -e "  DNS: ${RED}still failing${NC}"
+    fi
   fi
 }
 
@@ -259,6 +324,11 @@ vpn_fix() {
   # Step 1: Kill all openvpn processes and clean VPN state
   cleanup_vpn_state
   echo "  VPN processes killed, routes and DNS cleaned"
+
+  if [ "$OS" != "Darwin" ]; then
+    vpn_fix_linux
+    return 0
+  fi
 
   # Step 2: Detect the Wi-Fi interface
   local wifi_iface="en0"
@@ -335,7 +405,7 @@ vpn_fix() {
   fi
 
   # Step 6: Verify DNS resolution
-  if host -W 3 google.com > /dev/null 2>&1; then
+  if dns_works; then
     echo -e "  DNS: ${GREEN}working${NC}"
   else
     echo -e "  DNS: ${YELLOW}not resolving — resetting DNS to DHCP${NC}"
@@ -343,7 +413,7 @@ vpn_fix() {
       networksetup -setdnsservers Wi-Fi Empty
     fi
     sleep 1
-    if host -W 3 google.com > /dev/null 2>&1; then
+    if dns_works; then
       echo -e "  DNS: ${GREEN}fixed${NC}"
     else
       echo -e "  DNS: ${RED}still failing${NC}"
