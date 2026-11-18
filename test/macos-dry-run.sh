@@ -54,6 +54,7 @@ for f in \
   [ -e "$BUILD/$f" ] || die "~/$f was not generated"
 done
 grep -q 'com.example.app' "$BUILD/.aerospace.toml" || die "aerospace.local.toml not appended"
+grep -q '^source-file -q ~/.config/dotfiles/tmux.local.conf$' "$BUILD/.tmux.conf" || die "tmux.local.conf include missing"
 grep -q '"lang.prisma"' "$BUILD/.local/state/dotfiles/settings.lua" || die "NVIM_EXTRAS missing from settings.lua"
 grep -q '"mermaid"' "$BUILD/.local/state/dotfiles/settings.lua" || die "mermaid module missing from settings.lua"
 pass "all module outputs present"

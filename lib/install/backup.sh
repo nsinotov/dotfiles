@@ -38,6 +38,7 @@ if [ "$TEST_MODE" = false ]; then
   _backup_dir  "$DOTFILES_CONFIG_HOME/local"                           "local"
   _backup_dir  "$DOTFILES_CONFIG_HOME/aliases.d"                       "aliases.d"
   _backup_file "$DOTFILES_CONFIG_HOME/aerospace.local.toml"            "aerospace.local.toml"
+  _backup_file "$DOTFILES_CONFIG_HOME/tmux.local.conf"                 "tmux.local.conf"
 
   if module_enabled claude; then
     _backup_file "$HOME/.claude/settings.json"                         "claude/settings.json"

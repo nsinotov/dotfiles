@@ -68,6 +68,7 @@ NVIM_EXTRAS="lang.prisma"
 NVIM_PLUGINS="ThePrimeagen/vim-be-good"
 EOF
 printf '[aws.profile_aliases]\n"ci@example.com" = "ci"\n' > "$CONF_HOME/starship.local.toml"
+printf 'bind-key F9 display-message "local-binding-ok"\n' > "$CONF_HOME/tmux.local.conf"
 cat >> "$SECRETS" <<'EOF'
 CI_PRIVATE_TOKEN=must-not-leak
 CI_CLAUDE_TOKEN=claude-secret-value
@@ -279,11 +280,12 @@ set_modules "zsh git cli tmux nvim starship sesh ghostty vpn claude keyboard-ua-
   die "Ghostty Cyrillic include not linked"
 TERM=xterm-256color tmux -L ci -f "$HOME/.tmux.conf" new-session -d
 [[ "$(tmux -L ci list-keys -T prefix)" == *" е "* ]] || die "tmux did not load Cyrillic bindings"
+[[ "$(tmux -L ci list-keys -T prefix)" == *"local-binding-ok"* ]] || die "tmux did not load tmux.local.conf"
 tmux -L ci kill-server
 nvim_kbd="$(nvim --headless -u NONE --cmd "set rtp+=$HOME/.config/nvim" \
   -c 'lua io.write(tostring(require("lib.dotfiles").module("keyboard-ua-ru")))' -c 'qa!' 2>&1)"
 [ "$nvim_kbd" = true ] || die "nvim does not see keyboard-ua-ru ($nvim_kbd)"
-pass "tmux loads Cyrillic bindings, Ghostty include linked, nvim flag on"
+pass "tmux loads Cyrillic and tmux.local.conf bindings, Ghostty include linked, nvim flag on"
 
 step "TMUX_NESTED_TOGGLE=false removes the F12 include"
 echo "TMUX_NESTED_TOGGLE=false" >> "$CONFIG"

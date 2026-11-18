@@ -16,7 +16,7 @@ You are a developer environment consultant for this dotfiles repository. You hav
 | Ghostty | `terminal/ghostty/config` | Terminal, Catppuccin Mocha, Monaspice font; optional Cyrillic include |
 | Neovim (LazyVim) | `editor/nvim/` | Editor; `lua/lib/dotfiles.lua` reads `~/.local/state/dotfiles/settings.lua` (modules, `NVIM_EXTRAS`, `NVIM_PLUGINS`, local `nvim/` code) |
 | Mermaid | `editor/nvim/lua/plugins/mermaid.lua`, `editor/nvim/mermaid.json` | Module `mermaid`: snacks.nvim renders markdown Mermaid blocks inline via mmdc; Pele-like Catppuccin theme |
-| Tmux | `tmux/.tmux.conf` | Prefix `Ctrl+S`, TPM plugins, `prefix+t` sesh picker; optional includes `tmux/nested-toggle.conf` (F12, off with `TMUX_NESTED_TOGGLE=false`) and `tmux/keyboard-ua-ru.conf` |
+| Tmux | `tmux/.tmux.conf` | Prefix `Ctrl+S`, TPM plugins, `prefix+t` sesh picker; optional includes `tmux/nested-toggle.conf` (F12, off with `TMUX_NESTED_TOGGLE=false`) and `tmux/keyboard-ua-ru.conf`. `~/.config/dotfiles/tmux.local.conf` is loaded when present |
 | sesh | `tools/sesh.toml` | `prefix+t` runs `sesh list -i` (tmux sessions and zoxide dirs) in an fzf popup |
 | Starship | `prompt/starship.toml` | Prompt: icons only, git status, AWS profile, k8s context, duration. `~/.config/dotfiles/starship.local.toml` is appended when present |
 | Git | `git/.gitconfig` | Template; `install.sh` injects identity from `config.sh` and includes `~/.gitconfig.local` last. `git/.gitignore` → `~/.config/git/ignore` |

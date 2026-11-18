@@ -92,6 +92,7 @@ All settings live in `~/.config/dotfiles/` (untracked):
 | `config.sh` | Identity, modules, projects, Claude accounts, tool options. No secrets; safe to keep in a private repo. Template: [`config.example.sh`](config.example.sh) |
 | `.secrets` | Tokens only (`chmod 600`), referenced by name from `config.sh`. Template: [`.secrets.example`](.secrets.example) |
 | `starship.local.toml`, `aerospace.local.toml` | Per-machine additions appended to the tracked Starship and AeroSpace configs (extra `[tables]` only) |
+| `tmux.local.conf` | Per-machine tmux bindings, loaded by `.tmux.conf` when present (`prefix+r` reloads it) |
 | `local/` | Local extensions (see [below](#local-extensions)) |
 
 `.zshrc` loads `config.sh` and `.secrets` as shell variables without exporting them; list names that child processes need in `DOTFILES_EXPORT`.

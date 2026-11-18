@@ -81,6 +81,8 @@ DOTFILES_MODULES="zsh git cli tmux nvim starship sesh ghostty aerospace"
 # extra [tables] — top-level keys would land in the previous table):
 #   ~/.config/dotfiles/starship.local.toml   e.g. [aws.profile_aliases]
 #   ~/.config/dotfiles/aerospace.local.toml  e.g. [[on-window-detected]] rules
+# Per-machine tmux bindings, loaded by .tmux.conf when the file exists:
+#   ~/.config/dotfiles/tmux.local.conf       e.g. bind-key i run-shell "my-script"
 
 # ------------------------------------
 # Projects
