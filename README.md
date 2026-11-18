@@ -225,13 +225,14 @@ To rebuild a whole laptop, keep your personal layer in a separate private repo t
 dotfiles-private/              (your private repo)
   config.sh                    settings, symlinked to ~/.config/dotfiles/config.sh
   starship.local.toml          per-machine additions, symlinked into ~/.config/dotfiles/
+  tmux.local.conf              per-machine tmux bindings, symlinked into ~/.config/dotfiles/
   local/                       a local extensions dir: *.sh, bin/, nvim/
   setup.sh                     one-time laptop setup: apps, macOS defaults, links above
   README.md                    the restore steps below, for your own machine
 ```
 
 1. Clone both repos.
-2. Run the private `setup.sh`: it links `config.sh` and the `*.local.toml` files, and installs your apps.
+2. Run the private `setup.sh`: it links `config.sh`, the `*.local.toml` files and `tmux.local.conf`, and installs your apps.
 3. Add your tokens to `~/.config/dotfiles/.secrets` by hand, or have `setup.sh` fetch them from a password manager. Never commit them.
 4. Run `./install.sh` here. `config.sh` sets `DOTFILES_LOCAL_DIRS` to the private `local/` dir.
 
