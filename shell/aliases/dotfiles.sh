@@ -42,14 +42,14 @@ _dotfiles_sources() {
 # \037 and list items by \036:
 #   section name usage help desc args details examples file
 _dotfiles_records() {
-  local default
+  local fallback
   _dotfiles_sources | while IFS= read -r f; do
     # Commands without a "# section:" marker: local files get their own group
     case "$f" in
-      "$DOTFILES_DIR"/*|"$HOME"/.aliases.d/*|"$HOME"/bin/*) default="Other" ;;
-      *) default="Local extensions" ;;
+      "$DOTFILES_DIR"/*|"$HOME"/.aliases.d/*|"$HOME"/bin/*) fallback="Other" ;;
+      *) fallback="Local extensions" ;;
     esac
-    awk -v file="$f" -v default="$default" -v modules=" ${DOTFILES_MODULES:-} " '
+    awk -v file="$f" -v fallback="$fallback" -v modules=" ${DOTFILES_MODULES:-} " '
       function reset() { desc=""; usage=""; help=0; args=""; details=""; examples="" }
       function add(list, item) { return list == "" ? item : list "\036" item }
       function emit(name) {
@@ -59,7 +59,7 @@ _dotfiles_records() {
         reset()
       }
       function value(line) { sub(/^[[:space:]]*#[[:space:]]*[a-z]+:[[:space:]]?/, "", line); return line }
-      BEGIN { section = default; reset() }
+      BEGIN { section = fallback; reset() }
       /^[[:space:]]*#[[:space:]]*section:/ { section = value($0); reset(); next }
       /^[[:space:]]*#[[:space:]]*module:/  { module = value($0); reset(); next }
       /^[[:space:]]*#[[:space:]]*desc:/    { desc = value($0); next }
